@@ -360,7 +360,7 @@ if (window.marked) marked.setOptions({breaks:true, gfm:true});
 function md(t){ return marked.parse(t).replace(/<table>/g,'<div class="tw"><table>').replace(/<\/table>/g,'</table></div>').replace(/<a href="(https?:)/g,'<a target="_blank" rel="noopener" href="$1'); }
 /* Recursos internos ya publicados: ruta del MD → enlace */
 const INTERNAL = {
-  "99_PRODUCCIONES/dados-de-historias/Dados-de-Historias-Pegasus.html": "https://claude.ai/artifact/VAkSB5QNZN8cW8c7JbjAaq"
+  "99_PRODUCCIONES/dados-de-historias/Dados-de-Historias-Pegasus.html": "dados-de-historias.html"
 };
 function resources(ses){
   const out=[], seen=new Set();
