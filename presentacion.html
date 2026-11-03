@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Sesiones Extra Diapositivas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,500;0,600;0,700;0,800;1,700;1,800&display=swap">
+<style>
+/* Diapositivas 16:9 (1280×720) escaladas a la ventana. Identidad Pegasus: fondo blanco, curvas, gradiente TPT/IS en acentos (<40 %), nunca texto negro sobre gradiente, negativo nunca en rojo. */
+:root{
+  --verde:#08B75B; --azul:#007EC3; --morado:#974694; --rosa:#E45E9B; --amarillo:#F3D100;
+  --negro:#111; --tinta:#2A2530; --suave:#6A6272; --linea:#ECE6EE; --fondo-alt:#FAF7FB;
+  --morado-l:#F4EAF3; --verde-l:#E6F7EE; --azul-l:#EEF6FC; --amarillo-l:#FFF8D6;
+  --grad-tpt:linear-gradient(135deg,#974694,#E45E9B);
+  --grad-is:linear-gradient(135deg,#08B75B,#007EC3);
+  --grad-corp:linear-gradient(120deg,#08B75B,#007EC3 22%,#974694 45%,#E45E9B 62%,#D6191B 78%,#ED7928 89%,#F3D100);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'Barlow',system-ui,sans-serif;background:#EFE9F1;color:var(--tinta);overflow:hidden}
+#stage{position:absolute;left:50%;top:50%;width:1280px;height:720px;transform-origin:center center}
+.slide{position:absolute;inset:0;background:#fff;border-radius:28px;overflow:hidden;padding:64px 80px 70px;display:flex;flex-direction:column;opacity:0;visibility:hidden;transition:opacity .35s ease,visibility .35s;box-shadow:0 10px 40px rgba(60,30,70,.12)}
+.slide.on{opacity:1;visibility:visible}
+.slide::before{content:"";position:absolute;left:0;right:0;top:0;height:8px;background:var(--grad-corp)}
+.foot{position:absolute;left:80px;right:80px;bottom:26px;display:flex;justify-content:space-between;font-size:15px;color:var(--suave);font-weight:600}
+.foot i{font-weight:700}
+.kick{font-style:italic;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--morado);font-size:17px;margin-bottom:8px}
+.kick.is{color:var(--azul)}
+h2{font-weight:800;font-size:50px;line-height:1.05;color:var(--negro);letter-spacing:-.01em;margin-bottom:26px;max-width:1000px}
+h2 em{font-style:normal;background:var(--grad-tpt);-webkit-background-clip:text;background-clip:text;color:transparent}
+.big{font-size:27px;line-height:1.35;max-width:980px}
+.big b{color:var(--negro)}
+.grow{flex:1;display:flex;flex-direction:column;justify-content:center}
+.row{display:grid;gap:20px}
+.c2{grid-template-columns:1fr 1fr}.c3{grid-template-columns:repeat(3,1fr)}.c4{grid-template-columns:repeat(4,1fr)}
+.card{border:2px solid var(--linea);border-radius:24px;padding:24px 26px;background:#fff}
+.card.soft{background:var(--fondo-alt)}
+.card .e{font-size:40px;line-height:1;margin-bottom:12px}
+.card b{display:block;font-size:25px;color:var(--negro);margin-bottom:6px;line-height:1.15}
+.card span{font-size:20px;color:var(--suave);line-height:1.3}
+.pill{display:inline-block;padding:12px 22px;border-radius:100px;font-weight:800;font-size:22px}
+.pill.tpt{background:var(--grad-tpt);color:#fff}.pill.is{background:var(--grad-is);color:#fff}
+.chips{display:flex;flex-wrap:wrap;gap:12px}
+.chips span{padding:10px 18px;border-radius:100px;background:var(--fondo-alt);border:2px solid var(--linea);font-weight:700;font-size:20px}
+.band{border-radius:22px;padding:20px 26px;font-size:24px;font-weight:700;color:var(--negro)}
+.band.am{background:var(--amarillo-l);border:2.5px solid var(--amarillo)}
+.band.mo{background:var(--morado-l)}
+.band.ve{background:var(--verde-l)}
+.mt{margin-top:24px}
+/* portada */
+.cover{flex-direction:row;align-items:center;gap:56px;padding:64px}
+.cover .blk{flex:0 0 44%;align-self:stretch;border-radius:28px;background:var(--grad-tpt);color:#fff;padding:52px 48px;display:flex;flex-direction:column;justify-content:center}
+.cover .blk small{font-weight:700;letter-spacing:.2em;text-transform:uppercase;font-size:16px;opacity:.95}
+.cover .blk h1{font-style:italic;font-weight:800;text-transform:uppercase;font-size:92px;line-height:.95;margin:14px 0 20px}
+.cover .blk p{font-size:28px;line-height:1.25}
+.cover .txt{flex:1}
+.cover .txt p{font-size:30px;line-height:1.35;color:var(--tinta)}
+.cover .txt p b{color:var(--negro)}
+/* cita grande */
+.quote{font-size:46px;font-weight:800;font-style:italic;color:var(--negro);line-height:1.15;border-left:10px solid var(--rosa);padding-left:28px}
+.arrow{font-size:40px;color:var(--rosa);font-weight:800;margin:18px 0}
+/* precios */
+.bars{display:grid;gap:14px;max-width:1040px}
+.bar{display:grid;grid-template-columns:250px 1fr;align-items:center;gap:18px}
+.bar .l{font-weight:800;font-size:23px;color:var(--negro)}
+.bar .t{height:52px;border-radius:100px;background:var(--fondo-alt);position:relative}
+.bar .f{position:absolute;left:0;top:0;bottom:0;border-radius:100px;display:flex;align-items:center;justify-content:flex-end;padding:0 20px;font-weight:800;font-size:22px;color:var(--negro);background:#D9D1DD}
+.bar .f.p{background:var(--grad-tpt);color:#fff}
+.note{font-size:17px;color:var(--suave);margin-top:16px}
+/* meses */
+.months{display:grid;grid-template-columns:repeat(11,1fr);gap:8px}
+.months span{text-align:center;padding:14px 0;border-radius:14px;background:var(--grad-tpt);color:#fff;font-weight:800;font-size:19px}
+/* sí/no */
+.sn .card{padding:26px 30px}
+.sn h3{font-size:30px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:12px;color:var(--negro)}
+.sn .ico{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:26px;font-weight:800}
+.sn .si .ico{background:var(--grad-is)}.sn .no .ico{background:#9A90A0}
+.sn ul{list-style:none;display:grid;gap:10px}
+.sn li{font-size:24px;padding-left:22px;position:relative}
+.sn li::before{content:"";position:absolute;left:0;top:.5em;width:10px;height:10px;border-radius:50%;background:var(--rosa)}
+.sn .si{background:var(--verde-l);border-color:transparent}
+/* pasos */
+.steps{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:stretch;gap:14px}
+.steps .card{display:flex;flex-direction:column;gap:10px}
+.steps .n{width:46px;height:46px;border-radius:50%;background:var(--grad-tpt);color:#fff;font-weight:800;font-style:italic;font-size:22px;display:grid;place-items:center}
+.steps .to{align-self:center;font-size:34px;color:var(--rosa);font-weight:800}
+/* saldo */
+.saldo{display:grid;grid-template-columns:300px 1fr;gap:44px;align-items:center}
+.marc{border-radius:30px;border:3px solid var(--linea);padding:28px;text-align:center}
+.marc small{font-weight:800;font-style:italic;letter-spacing:.1em;text-transform:uppercase;color:var(--suave);font-size:15px}
+.marc .v{font-size:150px;font-weight:800;line-height:1;background:var(--grad-tpt);-webkit-background-clip:text;background-clip:text;color:transparent}
+.rules{display:grid;gap:16px}
+.rule{display:flex;align-items:center;gap:20px;font-size:25px;border:2px solid var(--linea);border-radius:22px;padding:14px 20px}
+.chip{flex:0 0 auto;width:62px;height:62px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:24px;font-variant-numeric:tabular-nums}
+.chip.mas{background:var(--grad-tpt);color:#fff}
+.chip.menos{background:#fff;color:var(--morado);border:3px solid var(--morado)}
+.chip.cero{background:#fff;color:var(--negro);border:3px solid var(--linea)}
+/* ejemplos */
+.ej{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.ej .card{display:flex;flex-direction:column;gap:12px;padding:22px}
+.ej .t{font-weight:800;font-size:20px;color:var(--negro);line-height:1.2;min-height:48px}
+.evo{display:flex;align-items:center;gap:8px}
+.evo .chip{width:54px;height:54px;font-size:21px}
+.evo .fl{font-size:26px;color:var(--rosa);font-weight:800}
+.ej .r{font-size:18px;color:var(--suave);line-height:1.3}
+.fin{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
+.fin div{border-radius:18px;padding:14px 20px;background:var(--morado-l);font-size:19px}
+.fin b{color:var(--negro)}
+/* círculo avisos */
+.ciclo{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.ciclo div{border-radius:22px;padding:24px 18px;text-align:center;font-weight:800;font-size:23px;background:var(--fondo-alt);border:2px solid var(--linea);color:var(--negro);position:relative}
+.ciclo div.f{background:var(--grad-is);color:#fff;border-color:transparent}
+.ciclo div:not(:last-child)::after{content:"→";position:absolute;right:-16px;top:50%;transform:translateY(-50%);color:var(--rosa);font-size:24px;z-index:1}
+/* cierre */
+.end{justify-content:center;align-items:flex-start}
+.end .gb{border-radius:28px;background:var(--grad-tpt);color:#fff;padding:52px 56px;width:100%}
+.end h2{color:#fff;font-style:italic;text-transform:uppercase;font-size:56px}
+.end p{font-size:26px}
+.end .tag{margin-top:26px;font-size:24px;font-style:italic;font-weight:700}
+/* anexo */
+.anexo{position:absolute;right:80px;top:40px;padding:8px 16px;border-radius:100px;background:var(--negro);color:#fff;font-weight:800;font-style:italic;font-size:15px;letter-spacing:.08em;text-transform:uppercase}
+.flow{display:grid;gap:12px}
+.flow div{display:flex;gap:14px;align-items:flex-start;font-size:22px;line-height:1.3}
+.flow .k{flex:0 0 auto;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:18px}
+.tptc .k{background:var(--grad-tpt)}.isc .k{background:var(--grad-is)}
+.flow-h{font-size:28px;font-weight:800;margin-bottom:16px;display:flex;gap:10px;align-items:center;color:var(--negro)}
+.dd{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.dd .card h3{font-size:26px;font-weight:800;margin-bottom:12px;color:var(--negro)}
+.dd ul{list-style:none;display:grid;gap:10px}
+.dd li{font-size:21px;line-height:1.3}
+.dd .ok{background:var(--verde-l);border-color:transparent}
+/* navegación */
+#nav{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);display:flex;gap:10px;align-items:center;z-index:5;background:rgba(255,255,255,.92);padding:8px 14px;border-radius:100px;box-shadow:0 4px 18px rgba(60,30,70,.15);font-family:inherit}
+#nav button{width:40px;height:40px;border-radius:50%;border:none;background:var(--grad-tpt);color:#fff;font-weight:800;font-size:18px;cursor:pointer;font-family:inherit}
+#nav button:disabled{opacity:.35;cursor:default}
+#nav span{font-weight:800;color:var(--morado);min-width:64px;text-align:center;font-variant-numeric:tabular-nums}
+#nav .fs{background:#fff;color:var(--morado);border:2px solid var(--linea);font-size:15px}
+@media print{
+  @page{size:1280px 720px;margin:0}
+  body{background:#fff;overflow:visible}
+  #stage{position:static;transform:none!important;width:1280px;height:auto}
+  .slide{position:relative;opacity:1;visibility:visible;height:720px;border-radius:0;box-shadow:none;page-break-after:always;break-after:page}
+  #nav{display:none}
+}
+.sub{font-size:24px;color:var(--suave);font-weight:600;margin-bottom:18px}
+.sn .card{padding:20px 28px}.sn li{font-size:22px}.sn h3{font-size:27px;margin-bottom:10px}
+.prio{border-radius:22px;padding:18px 24px;background:var(--morado-l)}
+.prio b{display:block;font-size:22px;color:var(--negro);margin-bottom:10px}
+.prio .pl{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.prio .pl span{display:flex;gap:12px;align-items:center;font-size:21px;font-weight:600;color:var(--negro)}
+.prio i{flex:0 0 auto;width:40px;height:40px;border-radius:50%;background:var(--grad-tpt);color:#fff;font-style:italic;font-weight:800;display:grid;place-items:center}
+.faq{flex:1;overflow-y:auto;padding-right:10px;margin-bottom:4px;scrollbar-width:thin}
+.faq h3{font-size:20px;font-weight:800;font-style:italic;text-transform:uppercase;letter-spacing:.08em;color:var(--morado);margin:16px 0 8px}
+.faq h3:first-child{margin-top:0}
+.faq details{border:2px solid var(--linea);border-radius:16px;margin-bottom:8px;background:#fff}
+.faq summary{cursor:pointer;list-style:none;padding:12px 18px;font-weight:700;font-size:20px;color:var(--negro);display:flex;gap:12px;align-items:center}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";margin-left:auto;font-weight:800;font-size:24px;line-height:1;color:var(--rosa)}
+.faq details[open]{background:var(--fondo-alt)}
+.faq details[open] summary::after{content:"−"}
+.faq .ans{padding:0 18px 14px}
+.faq .ans p{font-size:19px;line-height:1.4;margin-top:6px}
+.faq .tip{color:var(--suave);font-size:16px!important}
+#nav a.home{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;text-decoration:none;background:#fff;color:var(--morado);border:2px solid var(--linea);font-weight:800;font-size:18px}
+</style>
+</head>
+<body>
+<div id="stage">
+
+<!-- 1 · Portada -->
+<section class="slide cover on" aria-label="Portada">
+  <div class="blk">
+    <small>Fundación Pegasus</small>
+    <h1>Sesiones extra</h1>
+    <p>Una sesión más cuando queda un hueco libre. <b>Sin coste.</b></p>
+  </div>
+  <div class="txt">
+    <p>Desde el primer día caminamos a vuestro lado.</p>
+    <p class="mt">Este curso estrenamos algo <b>pensado para vosotros</b>.</p>
+  </div>
+</section>
+
+<!-- 2 · Por qué os lo contamos -->
+<section class="slide" aria-label="Por qué os lo contamos">
+  <div class="kick">Por qué os lo contamos</div>
+  <h2>Sabemos lo que significa <em>cada sesión</em></h2>
+  <div class="grow">
+    <div class="quote">«Estoy pagando algo<br>que no disfrutamos.»</div>
+    <p class="big mt">Pasa cuando un día no podéis venir y esa sesión no se recupera. Lo entendemos.</p>
+    <div class="arrow">↓</div>
+    <div><span class="pill tpt">Por eso hemos creado las sesiones extra</span></div>
+  </div>
+</section>
+
+<!-- 6 · Qué se recupera -->
+<section class="slide" aria-label="Qué sesiones se recuperan">
+  <div class="kick">Las normas de siempre</div>
+  <h2 style="margin-bottom:8px">¿Qué sesiones <em>se recuperan</em>?</h2>
+  <p class="sub">Como se indica en las condiciones que firmáis al empezar:</p>
+  <div class="grow">
+    <div class="row c2 sn">
+      <div class="card si"><h3><span class="ico">✓</span>Sí se recuperan</h3><ul><li>Faltas con justificante médico</li><li>Sesiones que no damos nosotros</li></ul></div>
+      <div class="card no"><h3><span class="ico">✕</span>No se recuperan</h3><ul><li>Vacaciones</li><li>Extraescolares u otros planes</li><li>Olvidos o imprevistos</li><li>Cansancio u otros motivos</li></ul></div>
+    </div>
+    <div class="band am mt"><b>¿Por qué no se recuperan?</b> Vuestra plaza está reservada cada semana y, aunque no vengáis, esa hora seguimos trabajando. Como los servicios están llenos, recuperarla es un hueco adicional que cubrir: un coste extra que este precio no puede sostener.</div>
+    <p class="note">Esto es cosa de los dos. Siempre intentamos ser flexibles en lo que podemos, porque entendemos a las personas.</p>
+  </div>
+</section>
+
+<!-- 8 · Sesiones extra -->
+<section class="slide" aria-label="Las sesiones extra">
+  <div class="kick">Lo que hemos creado para vosotros</div>
+  <h2>Las sesiones extra: <em>sesiones de más, sin coste</em></h2>
+  <div class="grow">
+    <div class="row c2">
+      <div class="card soft"><div class="e">↩️</div><b>Recuperación</b><span>Una sesión que os debemos</span></div>
+      <div class="card" style="border-color:var(--rosa)"><div class="e">🎁</div><b>Sesión extra</b><span>Una sesión de más, en un hueco libre. Suma +1 a vuestro saldo</span></div>
+    </div>
+    <div class="band am mt">¿De dónde salen? De huecos libres y de familias que <b>avisan con tiempo</b>. Otro día, ese hueco puede ser para vosotros.</div>
+  </div>
+</section>
+
+<!-- 9 · Cómo funciona -->
+<section class="slide" aria-label="Cómo funciona">
+  <div class="kick">Cómo funciona</div>
+  <h2>Os la <em>ofrecemos nosotros</em></h2>
+  <div class="grow">
+    <div class="steps">
+      <div class="card soft"><span class="n">1</span><b>Queda un hueco libre</b><span>En nuestra agenda</span></div>
+      <div class="to">→</div>
+      <div class="card soft"><span class="n">2</span><b>Os llamamos o escribimos</b><span>Con criterios iguales para todas las familias</span></div>
+      <div class="to">→</div>
+      <div class="card soft"><span class="n">3</span><b>Si os viene bien…</b><span>¡sesión extra!</span></div>
+    </div>
+    <div class="prio mt"><b>Orden de prioridad, igual para todas las familias</b><div class="pl"><span><i>1</i>Quienes tienen sesiones por recuperar</span><span><i>2</i>Quienes tienen saldo 0 y avisaron con tiempo cuando faltaron</span></div></div>
+    <div class="chips mt"><span>No es obligatorio</span><span>Es un piloto</span><span>Otro día o alargando</span><span>Sesión completa: 40 min terapia · 30 min deporte</span></div>
+  </div>
+</section>
+
+<!-- 10 · El saldo -->
+<section class="slide" aria-label="Vuestro saldo de sesiones">
+  <div class="kick">Vuestro saldo de sesiones</div>
+  <h2>Funciona como <em>un contador</em></h2>
+  <div class="grow">
+    <div class="saldo">
+      <div class="marc"><small>Tu saldo de sesiones</small><div class="v">+2</div></div>
+      <div class="rules">
+        <div class="rule"><span class="chip mas">+1</span>Recibís una sesión extra</div>
+        <div class="rule"><span class="chip menos">−1</span>Falta con justificante médico, o faltamos nosotros</div>
+        <div class="rule"><span class="chip cero">=</span>Falta sin justificante: no cambia y no se recupera</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 · Ejemplos -->
+<section class="slide" aria-label="Ejemplos del saldo">
+  <div class="kick">Mira estos ejemplos</div>
+  <h2>Cuatro ejemplos <em>muy fáciles</em></h2>
+  <div class="ej">
+    <div class="card"><div class="t">Recibís sesiones extra</div><div class="evo"><span class="chip cero">0</span><span class="fl">→</span><span class="chip mas">+3</span></div><div class="r">Tres sesiones de más, sin coste</div></div>
+    <div class="card"><div class="t">Falta con justificante, con saldo a favor</div><div class="evo"><span class="chip mas">+2</span><span class="fl">→</span><span class="chip mas">+1</span></div><div class="r">La cubren las extras que ya recibisteis</div></div>
+    <div class="card"><div class="t">Falta con justificante, con saldo a cero</div><div class="evo"><span class="chip cero">0</span><span class="fl">→</span><span class="chip menos">−1</span></div><div class="r">Os la recuperamos y volvéis a cero</div></div>
+    <div class="card"><div class="t">Una falta por vacaciones</div><div class="evo"><span class="chip mas">+1</span><span class="fl">→</span><span class="chip mas">+1</span></div><div class="r">No cambia. No se recupera</div></div>
+  </div>
+  <div class="fin">
+    <div><b>Fin de curso, saldo positivo:</b> sesiones de más que ya os habéis llevado.</div>
+    <div><b>Fin de curso, saldo negativo:</b> os las recuperamos y, si no se puede, os devolvemos el dinero.</div>
+  </div>
+  <p class="note">En terapias, las vacaciones de Navidad no se cobran ni tocan el saldo. El día de la Cabalgata sí se cobra y cerramos: cuenta como sesión que no damos nosotros (−1).</p>
+</section>
+
+<!-- 12 · Avisar con tiempo -->
+<section class="slide" aria-label="Avisadnos con tiempo">
+  <div class="kick is">Lo único que os pedimos</div>
+  <h2>Avisadnos <em>con tiempo</em></h2>
+  <div class="grow">
+    <div class="ciclo">
+      <div>💬 Avisáis con tiempo</div>
+      <div>Otra familia disfruta ese hueco</div>
+      <div>Otras familias también avisan</div>
+      <div class="f">Y esos huecos pueden ser para vosotros</div>
+    </div>
+    <div class="row c2 mt">
+      <div class="band ve">📱 Por WhatsApp a vuestro profesional, mejor con 24 h</div>
+      <div class="band am">⭐ Avisar con tiempo se anota y da prioridad</div>
+    </div>
+  </div>
+</section>
+
+<!-- 13 · Qué ganáis -->
+<section class="slide" aria-label="Qué ganáis">
+  <div class="kick">Qué ganáis</div>
+  <h2>Lo que las sesiones extra <em>os dan</em></h2>
+  <div class="grow">
+    <div class="row c3">
+      <div class="card soft"><div class="e">➕</div><b>Más terapia y más deporte</b><span>Sesiones de más, sin coste</span></div>
+      <div class="card soft"><div class="e">🎁</div><b>Sesiones que ya os habéis llevado</b><span>Si un día faltáis con justificante, ya las teníais</span></div>
+      <div class="card soft"><div class="e">💜</div><b>Ayudáis a otras familias</b><span>Cada vez que avisáis, otra familia puede recibir una sesión</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 12 · Preguntas frecuentes -->
+<section class="slide" aria-label="Preguntas de las familias">
+  <div class="kick">Para el equipo · preguntas de las familias</div>
+  <h2 style="margin-bottom:6px">¿Y si nos preguntan…?</h2>
+  <p class="sub" style="margin-bottom:12px">Pulsa cada pregunta para ver la respuesta. Si no la sabes: «Lo consulto y te digo». ⚠️ = todavía por decidir.</p>
+  <div class="faq">
+<h3>Qué son las sesiones extra</h3>
+<details><summary>¿Qué es una sesión extra?</summary><div class="ans"><p>«Una sesión de más, sin coste, que os ofrecemos cuando queda un hueco libre en nuestra agenda. Es una sesión completa: 40 minutos en terapia y 30 en deporte.»</p></div></details>
+<details><summary>¿Es lo mismo que una recuperación?</summary><div class="ans"><p>«No. Una recuperación es una sesión que os debemos: por una falta con justificante médico o porque no la hemos podido dar nosotros. La sesión extra es algo nuevo: una sesión de más, aparte de las vuestras.»</p></div></details>
+<details><summary>¿Tiene algún coste?</summary><div class="ans"><p>«No, es sin coste.»</p><p class="tip">👉 No prometas nada sobre la cuota: las sesiones extra no tienen coste, y punto.</p></div></details>
+<details><summary>¿Por qué hacéis esto? ¿Es porque faltamos mucho?</summary><div class="ans"><p>«No va de eso. A lo largo del curso quedan horas libres, y queremos aprovecharlas para daros más terapia y más deporte. Es una forma de cuidaros mejor.»</p><p class="tip">👉 Nunca en tono de reproche.</p></div></details>
+<details><summary>¿Quién me da la sesión extra?</summary><div class="ans"><p>«Nosotros, vuestro profesional, en un hueco de nuestra agenda.»</p></div></details>
+<details><summary>¿Qué se hace en una sesión extra?</summary><div class="ans"><p>«Una sesión completa, con el mismo cuidado que las vuestras. Se realiza tanto un alargamiento de sesión de 40 minutos como una sesión en un día diferente.»</p><p class="tip">👉 Tienes la Biblioteca de Sesiones Extra para prepararla.</p></div></details>
+<h3>Cómo se ofrecen</h3>
+<details><summary>¿Puedo pedir una sesión extra?</summary><div class="ans"><p>«No se piden: os las ofrecemos nosotros cuando queda un hueco. Lo que sí podéis hacer es avisarnos con tiempo cuando no vayáis a venir: eso os da prioridad.»</p><p class="tip">👉 Si insisten (por ejemplo, para «adelantar» unas vacaciones): con cariño, pero no. Las extras no son a demanda.</p></div></details>
+<details><summary>¿Por qué se la habéis ofrecido a otra familia y no a mí?</summary><div class="ans"><p>«Seguimos el mismo orden con todas las familias: primero, quienes tienen sesiones pendientes de recuperar; después, quienes tienen saldo 0 y avisan con tiempo cuando faltan.»</p></div></details>
+<details><summary>¿Cuántas sesiones extra voy a recibir?</summary><div class="ans"><p>«Depende de los huecos que vayan quedando, así que no os podemos decir un número. Cuando haya uno y os toque, os llamamos o escribimos.»</p></div></details>
+<details><summary>¿Cuándo suele haber más huecos?</summary><div class="ans"><p>«Antes de las vacaciones, en los festivos del cole y en julio.»</p></div></details>
+<details><summary>¿Es obligatorio aceptarla?</summary><div class="ans"><p>«No. Si no os viene bien, no pasa nada: se la ofrecemos a otra familia.»</p><p class="tip">👉 Registra siempre la oferta en el Excel, aunque la rechacen.</p></div></details>
+<details><summary>¿Puede ser otro día o alargando la sesión?</summary><div class="ans"><p>«Las dos cosas: otro día distinto al vuestro o alargando vuestra sesión. Según el tipo de sesión, no siempre se puede alargar; os diremos qué opción es posible.»</p><p class="tip">👉 En terapias, con nivel bajo, por norma no se alarga (para cuidar su capacidad atencional). Puede haber excepciones según tu criterio.</p></div></details>
+<details><summary>¿Y si la acepto y al final no puedo ir? ⚠️</summary><div class="ans"><p>«Avisadnos cuanto antes, para poder ofrecérsela a otra familia. Esa sesión no suma a vuestro saldo.»</p><p class="tip">👉 Hoy el Excel la cuenta como 0. La política definitiva está pendiente (P-001).</p></div></details>
+<details><summary>¿Puede ser para su hermano o para otro miembro de la familia?</summary><div class="ans"><p>«No: la sesión extra es para la persona a la que se le ofrece.»</p><p class="tip">👉 Aun así, si te lo plantean, coméntaselo a Marre.</p></div></details>
+<details><summary>¿Puedo cederla a otra familia?</summary><div class="ans"><p>«No: la sesión extra no se puede ceder. Si no os viene bien, se la ofrecemos a la siguiente familia, por orden.»</p><p class="tip">👉 Aun así, si te lo plantean, coméntaselo a Marre.</p></div></details>
+<h3>El saldo de sesiones</h3>
+<details><summary>¿Qué es el saldo de sesiones?</summary><div class="ans"><p>«Funciona como un contador. Cada sesión extra suma +1. Cada sesión que os debemos (una falta con justificante médico o una que no damos nosotros) resta −1. Las faltas sin justificante no lo cambian.»</p></div></details>
+<details><summary>¿Cómo sé cuál es mi saldo?</summary><div class="ans"><p>«Os iremos informando. Después de cada sesión extra, recuperación o falta os decimos cómo queda.»</p><p class="tip">👉 Fórmula: «Hoy hemos tenido sesión extra: tu saldo pasa a +1».</p></div></details>
+<details><summary>¿Qué significa tener saldo positivo?</summary><div class="ans"><p>«Que ya os habéis llevado sesiones de más, sin coste.»</p></div></details>
+<details><summary>¿Y saldo negativo? ¿Os debo algo?</summary><div class="ans"><p>«Al revés: significa que os debemos sesiones nosotros, y os las vamos a recuperar. Sois los primeros a los que ofrecemos los huecos.»</p><p class="tip">👉 Nunca lo presentes como una deuda de la familia ni lo pintes en rojo.</p></div></details>
+<details><summary>He faltado con justificante, ¿por qué no me la recuperáis?</summary><div class="ans"><p>«Porque esa sesión ya la recibisteis antes como sesión extra: la cubre vuestro saldo. No la perdéis, ya os la habíais llevado. Por ejemplo, de +2 pasáis a +1, y seguís con una a vuestro favor.»</p><p class="tip">👉 Si el saldo es 0 o negativo, sí se recupera.</p></div></details>
+<details><summary>Prefiero recuperarla y guardar mi saldo.</summary><div class="ans"><p>«Lo entendemos, pero el sistema funciona así para todas las familias: el saldo positivo son sesiones que ya habéis disfrutado, y cubren las faltas con justificante.»</p></div></details>
+<details><summary>¿Las faltas sin justificante me restan?</summary><div class="ans"><p>«No. Ni se recuperan ni tocan vuestro saldo.»</p></div></details>
+<details><summary>¿Y si sois vosotros los que faltáis?</summary><div class="ans"><p>«Cuenta igual que una falta con justificante. Si tenéis saldo positivo, la cubre; si no, os la recuperamos.»</p></div></details>
+<details><summary>¿Qué pasa con el saldo a final de curso?</summary><div class="ans"><p>«Si es positivo, son sesiones de más que ya os habéis llevado, sin coste, y el contador vuelve a cero. Si es negativo, os recuperamos esas sesiones en julio (y en septiembre, si seguís con nosotros); si no se puede, os devolvemos el dinero de esas sesiones.»</p></div></details>
+<details><summary>¿Puedo cambiar el saldo positivo por dinero, un descuento o pasarlo al curso que viene?</summary><div class="ans"><p>«No: son sesiones que ya habéis disfrutado. A final de curso el contador vuelve a cero.»</p></div></details>
+<h3>Qué se recupera y qué no</h3>
+<details><summary>¿Qué sesiones se recuperan?</summary><div class="ans"><p>«Como se indica en las condiciones que firmáis al empezar: se recuperan las faltas con justificante médico y las sesiones que no damos nosotros. No se recuperan vacaciones, extraescolares u otros planes, olvidos o imprevistos, ni cansancio u otros motivos.»</p></div></details>
+<details><summary>¿Por qué no se recuperan las vacaciones? Estoy pagando algo que no disfruto.</summary><div class="ans"><p>«Lo entendemos, y esa sensación no gusta a nadie. Vuestra plaza está reservada cada semana y, aunque no vengáis, esa hora seguimos trabajando. Como los servicios están llenos, recuperarla sería un hueco adicional que cubrir: un coste que este precio no puede sostener. Por eso hemos creado las sesiones extra: para que esa sensación pese menos.»</p></div></details>
+<details><summary>No avisé, pero tengo justificante médico. ¿Cuenta?</summary><div class="ans"><p>«Sí, cuenta como falta justificada. Eso sí, si nos avisáis con tiempo nos ayudáis a todos.»</p></div></details>
+<details><summary>Me ha surgido algo importante, no es médico. ¿No hay nada que hacer?</summary><div class="ans"><p>«Contádnoslo siempre. Las normas hay que cumplirlas, pero detrás hay personas: cada situación la miramos juntos.»</p><p class="tip">👉 No prometas la recuperación: lo hablas con tu coordinadora.</p></div></details>
+<details><summary>¿Y en Navidad? (terapias)</summary><div class="ans"><p>«Las vacaciones de Navidad no se cobran, así que no se recuperan ni tocan vuestro saldo.»</p></div></details>
+<details><summary>¿Y el día de la Cabalgata? (terapias)</summary><div class="ans"><p>«Ese día sí se cobra y cerramos: cuenta como una sesión que no damos nosotros. Si tenéis saldo positivo, la cubre; si no, os la recuperamos.»</p></div></details>
+<details><summary>¿Y los festivos en deporte? ⚠️</summary><div class="ans"><p>«Lo consulto y te digo.»</p><p class="tip">👉 Pendiente de cerrar.</p></div></details>
+<h3>Avisar con tiempo</h3>
+<details><summary>¿Cómo aviso si no vamos a venir?</summary><div class="ans"><p>«Por WhatsApp a vuestro profesional, mejor con 24 horas de antelación.»</p></div></details>
+<details><summary>¿Y si me entero tarde, con menos de 24 horas?</summary><div class="ans"><p>«Avisad igualmente, cuanto antes. Siempre ayuda.»</p></div></details>
+<details><summary>¿Qué gano avisando con tiempo?</summary><div class="ans"><p>«Prioridad para las sesiones extra, porque se anota. Y que otra familia pueda aprovechar ese hueco. Otro día, ese hueco puede ser para vosotros.»</p></div></details>
+<details><summary>¿Y si no aviso, me penalizáis?</summary><div class="ans"><p>«No hay castigo. Pero avisar con tiempo os da prioridad para las sesiones extra.»</p></div></details>
+<h3>El piloto</h3>
+<details><summary>¿Por qué solo en algunos centros? En mi otro servicio no lo tenéis.</summary><div class="ans"><p>«Lo estamos poniendo en marcha poco a poco, en algunos centros y servicios de Pegasus, para estudiarlo e ir mejorándolo antes de llevarlo a todos.»</p></div></details>
+<details><summary>¿Esto es para siempre? ¿Hasta cuándo?</summary><div class="ans"><p>«Es un piloto: lo estamos probando hasta enero y lo iremos mejorando con vosotros. Vuestra opinión nos ayuda mucho.»</p></div></details>
+<details><summary>¿Me vais a llamar para preguntarme qué me parece?</summary><div class="ans"><p>«Puede que alguien del equipo os llame para saber cómo lo estáis viviendo. Nos ayuda mucho.»</p><p class="tip">👉 Las llamadas las hacen las coordinadoras a una muestra de familias (17-20 nov y 9-14 dic).</p></div></details>
+<h3>Casos concretos</h3>
+<details><summary>Tengo bono, ¿me afecta? (terapias)</summary><div class="ans"><p>«No. Las sesiones extra y el saldo son para quien tiene suscripción. Con el bono, si no venís y no avisáis, esa sesión se descuenta del bono.»</p><p class="tip">👉 Fuente: _Contexto Pegasus/02 (los usuarios de bono no tienen faltas, recuperaciones, extras ni saldo). Confírmalo con tu coordinadora si dudas.</p></div></details>
+<details><summary>Mi peque es nuevo / acabamos de empezar.</summary><div class="ans"><p>«Empezáis con el saldo a cero. En cuanto haya un hueco y os toque, os ofreceremos sesiones extra.»</p></div></details>
+<details><summary>Ya tenía sesiones pendientes de recuperar antes de esto.</summary><div class="ans"><p>«Las mantenemos: vuestro saldo empieza en negativo y sois de los primeros a los que ofrecemos los huecos.»</p></div></details>
+  </div>
+</section>
+
+</div>
+
+<nav id="nav" aria-label="Navegación">
+  <button type="button" id="prev" aria-label="Anterior">←</button>
+  <span id="pos">1 / 10</span>
+  <button type="button" id="next" aria-label="Siguiente">→</button>
+  <button type="button" class="fs" id="fs" aria-label="Pantalla completa">⛶</button>
+  <a class="home" href="index.html" aria-label="Volver al índice" title="Índice">⌂</a>
+</nav>
+
+<script>
+(function(){
+  var stage=document.getElementById('stage'),slides=[].slice.call(document.querySelectorAll('.slide')),i=0;
+  var pos=document.getElementById('pos'),prev=document.getElementById('prev'),next=document.getElementById('next');
+  function fit(){var s=Math.min(window.innerWidth/1280,(window.innerHeight-70)/720);stage.style.transform='translate(-50%,-50%) scale('+s+')';stage.style.marginTop='-28px'}
+  function go(k){k=Math.max(0,Math.min(slides.length-1,k));slides[i].classList.remove('on');i=k;slides[i].classList.add('on');pos.textContent=(i+1)+' / '+slides.length;prev.disabled=i===0;next.disabled=i===slides.length-1;try{history.replaceState(null,'','#'+(i+1))}catch(e){}}
+  prev.onclick=function(){go(i-1)};next.onclick=function(){go(i+1)};
+  document.getElementById('fs').onclick=function(){var d=document.documentElement;if(!document.fullscreenElement){(d.requestFullscreen||function(){}).call(d)}else{document.exitFullscreen()}};
+  document.addEventListener('keydown',function(e){if(['ArrowRight','PageDown',' '].indexOf(e.key)>-1){e.preventDefault();go(i+1)}if(['ArrowLeft','PageUp'].indexOf(e.key)>-1){e.preventDefault();go(i-1)}if(e.key==='Home')go(0);if(e.key==='End')go(slides.length-1)});
+  var x0=null;document.addEventListener('touchstart',function(e){x0=e.touches[0].clientX},{passive:true});document.addEventListener('touchend',function(e){if(x0===null)return;var dx=e.changedTouches[0].clientX-x0;if(Math.abs(dx)>50)go(i+(dx<0?1:-1));x0=null});
+  window.addEventListener('resize',fit);fit();
+  var h=parseInt(location.hash.slice(1),10);go(isNaN(h)?0:h-1);
+})();
+</script>
+</body>
+</html>

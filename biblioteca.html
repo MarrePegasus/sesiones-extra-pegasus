@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Biblioteca de Sesiones Extra</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap">
+<style>
+/* Layout: herramienta de consulta rápida en sala. Inicio = rejilla de áreas (TPT / IS). Área = selector Sesión extra / Alargamiento + nivel + nº, contenido debajo. */
+:root{
+  --bg:#ffffff; --surface:#f6f4f8; --surface2:#efebf2; --line:#e3dde8; --fg:#231c2b; --muted:#6a6273;
+  --verde:#08B75B; --azul:#007EC3; --morado:#974694; --rosa:#E45E9B; --rojo:#D6191B; --naranja:#ED7928;
+  --tpt:#974694; --tpt2:#E45E9B; --is:#007EC3; --is2:#08B75B;
+  --accent:var(--tpt); --accent2:var(--tpt2);
+  --warn-bg:#fdecec; --warn-fg:#a3161a; --info-bg:#eef6fc; --info-fg:#0a5c8c; --ok-bg:#eaf7f0; --ok-fg:#067a3e;
+  --display:"Barlow Condensed","Barlow",system-ui,sans-serif;
+  --body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#16121a; --surface:#211b26; --surface2:#2a2330; --line:#3a3141; --fg:#f2edf5; --muted:#ada3b5;
+  --tpt:#d68ad3; --tpt2:#f28fbc; --is:#5bb8ee; --is2:#4fd892;
+  --warn-bg:#3b1a1c; --warn-fg:#ff9a9b; --info-bg:#132a3a; --info-fg:#8fd0f7; --ok-bg:#15302a; --ok-fg:#72e0a6; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#16121a; --surface:#211b26; --surface2:#2a2330; --line:#3a3141; --fg:#f2edf5; --muted:#ada3b5;
+  --tpt:#d68ad3; --tpt2:#f28fbc; --is:#5bb8ee; --is2:#4fd892;
+  --warn-bg:#3b1a1c; --warn-fg:#ff9a9b; --info-bg:#132a3a; --info-fg:#8fd0f7; --ok-bg:#15302a; --ok-fg:#72e0a6; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.55;margin:0}
+.wrap{max-width:960px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.top{background:linear-gradient(110deg,var(--verde),var(--azul) 28%,var(--morado) 60%,var(--rosa) 85%,var(--naranja));color:#fff;border-radius:0 0 36px 36px}
+.top .wrap{padding-block:26px 24px;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+.top h1{font-family:var(--display);font-size:clamp(30px,6vw,44px);line-height:1;margin:4px 0 0}
+.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;opacity:.92}
+.top p{margin:6px 0 0;font-size:16px;max-width:52ch}
+h2{font-family:var(--display);font-size:28px;line-height:1.1;margin:0}
+.group{margin-top:32px}
+.group-head{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.group-head span{color:var(--muted);font-size:15px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.tile{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;background:var(--surface);border:2px solid transparent;border-radius:22px;padding:18px 18px 16px;transition:border-color .15s,transform .15s}
+.tile:hover{border-color:var(--c);transform:translateY(-2px)}
+.tile .dot{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--c),var(--c2));margin-bottom:8px}
+.tile strong{font-size:19px;line-height:1.2}
+.tile small{color:var(--muted);font-size:14px}
+.tile.tpt{--c:var(--tpt);--c2:var(--tpt2)} .tile.is{--c:var(--is);--c2:var(--is2)}
+.howto{margin-top:36px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.howto div{border:1px solid var(--line);border-radius:20px;padding:16px 18px}
+.howto h3{margin:0 0 4px;font-size:17px}
+.howto p{margin:0;color:var(--muted);font-size:15px}
+
+/* Vista de área */
+.crumb{display:flex;align-items:center;gap:10px;margin-top:16px;flex-wrap:wrap}
+.navbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);display:flex;align-items:center;gap:10px;padding-block:10px;border-bottom:1px solid var(--line)}
+.navbar .trail{flex:1;min-width:0;font-size:14px;font-weight:600;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.navbar .back{flex:0 0 auto;min-height:40px}
+.navbar .up{width:40px;padding:0}
+.endnav{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.back{background:var(--surface);border:none;border-radius:999px;padding:8px 16px;font-weight:600}
+.svc{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+.area-title{font-family:var(--display);font-size:clamp(32px,6vw,44px);line-height:1;margin:14px 0 0}
+.controls{display:grid;gap:12px;margin-top:20px}
+.seg{display:flex;flex-wrap:wrap;gap:6px;background:var(--surface);padding:6px;border-radius:999px;width:max-content;max-width:100%}
+.seg button{border:none;background:transparent;border-radius:999px;padding:10px 18px;font-weight:600;color:var(--muted);min-height:44px}
+.seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+.seg.big button{font-size:18px;padding:12px 22px}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.label{font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--muted);min-width:64px}
+.panel{margin-top:22px}
+.card{background:var(--surface);border-radius:24px;padding:22px 24px;min-width:0}
+.alert{border-radius:22px;padding:20px 22px;display:grid;gap:8px}
+.alert.warn{background:var(--warn-bg);color:var(--warn-fg)}
+.alert.info{background:var(--info-bg);color:var(--info-fg)}
+.alert h3{margin:0;font-size:20px;line-height:1.25}
+.alert p{margin:0;color:inherit}
+.alert .btn{justify-self:start;margin-top:6px}
+.btn{border:none;border-radius:999px;padding:11px 20px;font-weight:700;background:var(--accent);color:#fff;min-height:44px}
+.steps{list-style:none;padding:0;margin:18px 0 0;display:grid;gap:12px;counter-reset:s}
+.steps li{display:grid;grid-template-columns:40px 1fr;gap:14px;align-items:start;background:var(--surface);border-radius:20px;padding:16px 18px}
+.steps li::before{counter-increment:s;content:counter(s);width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:20px;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.steps h4{margin:2px 0 4px;font-size:18px}
+.steps p{margin:0}
+.quote{margin-top:16px;border-left:4px solid var(--accent);padding:12px 16px;background:var(--surface);border-radius:0 16px 16px 0;font-weight:500}
+.quote small{display:block;color:var(--muted);font-weight:600;font-size:12px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
+.limit{margin-top:16px;display:inline-flex;gap:8px;align-items:center;background:var(--ok-bg);color:var(--ok-fg);padding:8px 14px;border-radius:999px;font-weight:600;font-size:15px}
+
+/* Contenido de la sesión */
+.session-head{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px}
+.pill{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:999px;background:var(--surface2);color:var(--muted)}
+.pill.acc{background:var(--accent);color:#fff}
+.md{min-width:0}
+.md h1{font-family:var(--display);font-size:30px;line-height:1.1;margin:6px 0 10px}
+.md h2{font-family:var(--display);font-size:24px;margin:28px 0 8px;padding-top:16px;border-top:1px solid var(--line)}
+.md h3{font-size:18px;margin:20px 0 6px;color:var(--accent)}
+.md h4{font-size:16px;margin:16px 0 4px}
+.md p,.md li{max-width:70ch}
+.md ul,.md ol{padding-left:22px}
+.md blockquote{margin:12px 0;padding:10px 16px;border-left:4px solid var(--accent);background:var(--bg);border-radius:0 14px 14px 0}
+.md table{border-collapse:collapse;width:100%;font-size:15px;font-variant-numeric:tabular-nums}
+.md th,.md td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+.md th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.md .tw{overflow-x:auto}
+.md code{background:var(--surface2);padding:1px 6px;border-radius:6px}
+.md>p>strong:first-child{display:inline-block;font-family:var(--display);font-size:21px;line-height:1.2;color:var(--accent);margin-top:14px}
+.md>p:first-child>strong:first-child{margin-top:0}
+.res{margin:12px 0 6px}
+.res h3{margin:0 0 8px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.res ul{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.reslink{display:grid;gap:2px;background:var(--bg);border:2px solid var(--accent);border-radius:16px;padding:10px 14px;text-decoration:none;color:var(--fg)}
+.reslink span{font-weight:700;color:var(--accent)}
+.reslink small{color:var(--muted);font-size:14px}
+.reslink.off{border-style:dashed;border-color:var(--line)}
+.reslink.off span{color:var(--fg)}
+.reslink code{font-size:12px;word-break:break-all}
+a.reslink:hover{background:var(--surface2)}
+.md a{color:var(--accent);font-weight:600}
+.alert.soft{background:var(--bg);border:1px dashed var(--line);margin-top:14px}
+.alert.soft h3{color:var(--fg)} .alert.soft p{color:var(--muted)}
+.btn.ghost{background:transparent;color:var(--accent);border:2px solid var(--accent)}
+.ficha{margin:10px 0 4px;background:var(--bg);border-radius:16px;padding:4px 16px}
+.ficha summary{cursor:pointer;font-weight:600;padding:10px 0;color:var(--accent)}
+.ficha .md table td:first-child{white-space:nowrap}
+.md>h1:only-child{margin-bottom:0}
+.pickrow{display:grid;gap:8px}
+.pickrow .seg{display:grid;grid-template-columns:1fr 1fr;width:100%;border-radius:20px}
+.pickrow .seg button{border-radius:14px;text-align:left;line-height:1.25;padding:10px 14px;min-width:0}
+.xtra{background:var(--surface);border-radius:24px;padding:16px;display:grid;gap:10px}
+.xhead{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+.xhead strong{font-family:var(--display);font-size:26px;line-height:1;color:var(--accent)}
+.xhead span{font-weight:600;color:var(--ok-fg);background:var(--ok-bg);border-radius:999px;padding:2px 10px;font-size:14px}
+.xq{margin:0;font-weight:600;color:var(--muted)}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.modes button{display:grid;gap:2px;align-content:start;text-align:left;border:2px solid var(--line);background:var(--bg);border-radius:18px;padding:12px 14px;min-height:64px;min-width:0}
+.modes button strong{font-size:18px;line-height:1.2}
+.modes button span{font-size:14px;color:var(--muted);line-height:1.3}
+.modes button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent);color:#fff}
+.modes button[aria-pressed="true"] span{color:#fff;opacity:.9}
+.howto{grid-template-columns:1fr !important}
+.howto-one{border:1px solid var(--line);border-radius:20px;padding:16px 18px}
+.howto-two{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:10px}
+.howto-two>div{display:grid;gap:2px;background:var(--surface);border-radius:14px;padding:12px 14px;border:none}
+.howto-two span{color:var(--muted);font-size:15px}
+.empty{text-align:center;padding:36px 20px}
+.empty .ico{width:56px;height:56px;border-radius:50%;margin:0 auto 12px;background:linear-gradient(135deg,var(--accent),var(--accent2));opacity:.35}
+.empty h3{margin:0 0 6px;font-size:20px}
+.empty p{margin:0 auto;color:var(--muted);max-width:44ch}
+footer{margin-top:48px;color:var(--muted);font-size:13px}
+@media (max-width:520px){body{font-size:16px}.card{padding:18px}.steps li{grid-template-columns:34px 1fr;padding:14px}.steps li::before{width:34px;height:34px;font-size:18px}}
+@media (prefers-reduced-motion:reduce){.tile{transition:none}.tile:hover{transform:none}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow">Fundación Pegasus · Testeo noviembre 2026</div>
+      <h1>Biblioteca de Sesiones Extra</h1>
+      <p>Elige tu área, cómo vas a dar la sesión extra y el nivel del peque. Todo lo que necesitas para la sesión, en un vistazo.</p>
+    </div>
+  </div>
+</header>
+
+<main class="wrap" id="app"></main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+<script>
+/* ===================== DATOS ===================== */
+const AREAS = [
+  {id:"logo",  name:"Logopedia",           svc:"tpt"},
+  {id:"to",    name:"Terapia Ocupacional", svc:"tpt"},
+  {id:"psico", name:"Psicología",          svc:"tpt"},
+  {id:"fisio", name:"Fisioterapia",        svc:"tpt"},
+  {id:"multi", name:"Multideporte",        svc:"is"},
+  {id:"pisci", name:"Piscinasus",          svc:"is"},
+  {id:"futbol",name:"Fútbol adaptado",     svc:"is"}
+];
+const SVC = {tpt:{name:"Terapia para Todos", short:"TPT", slot:40}, is:{name:"Inclusive Sport", short:"IS", slot:30}};
+
+/* Contenido de cada sesión (Markdown). Clave: area-numero. Fuente: Recopilatorio de sesiones AB · todas las áreas. */
+const SESSIONS = {
+ "logo-1": {
+  "title": "Dado de colores y Frases en construcción",
+  "ficha": "| | |\n|---|---|\n| **Área** | Logopedia (TPT) |\n| **Tipo** | AB |\n| **Autoría** | Cecilia Camacho |\n| **Niveles** | Alto + Bajo. La parte principal es la misma en los dos niveles; cambian el momento social, el manos a la obra y el juego final. |",
+  "areaNote": "",
+  "alto": "**Momento social**\n¿Tenéis ganas de vacaciones?\n\n**Momento manos a la obra**\nMemori.\n\n**Parte principal**\n\n**Actividad 1 · \"Dado de colores fonético\"**\n\n- **Descripción:** juego de sonidos y palabras en el que cada color representa una letra o sílaba. Antes de empezar se acuerda con el niño qué color corresponde a qué sonido, y se juega tirando el dado y siguiendo las reglas.\n- **Objetivos:**\n  - Mejorar la conciencia fonética y fonológica.\n  - Ejercitar la discriminación auditiva de letras y sílabas.\n  - Incrementar el vocabulario a través de palabras y descripciones.\n  - Favorecer la atención y la memoria auditiva.\n- **Niveles de juego:**\n  - **Nivel 1 · Palabra con el color.** Se tira el dado y sale un color (por ejemplo, rojo = \"ma\"). El niño dice una palabra que empiece por esa letra o sílaba. *Ejemplo: rojo → \"ma\" → mamá, mano, madera.*\n  - **Nivel 2 · Busca el pictograma.** Se tira el dado y sale un color. El niño busca entre pictogramas la palabra que empieza por esa letra o sílaba. *Ejemplo: azul → \"pe\" → señala la pelota.*\n  - **Nivel 3 · Discriminación auditiva.** La logopeda tira el dado sin que el niño lo vea y dice una palabra que empiece por la sílaba de ese color. El niño adivina el color o la sílaba. *Ejemplo: verde → \"so\" → dice \"sol\" → el niño responde \"verde = so\".*\n  - **Nivel 4 · Avanzado con descripción.** Igual que el nivel 3, pero en lugar de decir la palabra, la logopeda la describe sin nombrarla. El niño escucha la descripción y adivina el color o la sílaba. *Ejemplo: amarillo → \"li\" → \"Es un animal que dice miau\" → \"amarillo = li\".*\n- **Variaciones para subir la dificultad:** sílabas más complejas o consonantes difíciles; más colores y más letras; pedir palabras de 2 sílabas o más para trabajar la segmentación fonológica.\n- **Material:** dado de colores.\n\n**Actividad 2 · \"Frases en construcción\"**\n\n- **Descripción:** los peques se convierten en pequeños arquitectos del lenguaje. Cada bloque de color es un tipo de palabra (sujeto, verbo, complemento o artículo). La longitud de la frase depende de cuántos bloques salgan de la \"bolsa sorpresa\", y no saben cuáles les tocarán hasta sacarlos. Después ordenan los bloques para formar una frase correcta y coherente, y la escriben.\n- **Objetivos:**\n  - Identificar las categorías de palabras según su color.\n  - Construir frases respetando el orden: artículo → sujeto → verbo → complemento.\n  - Trabajar en equipo y seguir instrucciones sobre la cantidad de palabras.\n  - Escribir frases completas y creativas.\n- **Niveles de juego:**\n  - **Nivel 1 · Frases cortas sorpresa.** La otra persona dice cuántos bloques hay que sacar (por ejemplo, 2). Se sacan sin mirar y se organiza la frase. *Ejemplo: perro + corre → \"Perro corre\".*\n  - **Nivel 2 · Añadimos detalles.** Se indican más bloques (por ejemplo, 3): sustantivo + verbo + adjetivo. *Ejemplo: \"Perro corre rápido\".*\n  - **Nivel 3 · Frases completas.** 4 bloques o más; la frase debe incluir artículo, sustantivo, verbo y adjetivo. *Ejemplo: \"El perro corre rápido\".*\n  - **Nivel 4 · Creatividad total.** Se sacan bloques al azar (5 o más), se organiza la frase libremente, se pueden inventar combinaciones nuevas y luego se escribe.\n- **Material:** imágenes y bloques o tarjetas de colores dentro de una bolsa opaca o caja donde no se vean:\n  - Verde → sujeto (quién hace la acción)\n  - Rojo → verbo (acción)\n  - Amarillo → complemento (cómo, dónde, cuándo, qué)\n  - Azul → artículo (el, la, los, las, un, una)\n\n**Juego final · Dibujo a ciegas**\nUno describe algo (un gato, una casa) y el otro lo dibuja con los ojos cerrados. Luego comparáis: suelen salir obras de arte muy raras.",
+  "bajo": "**Momento social**\nAnticipación de la sesión.\n\n**Momento manos a la obra**\nSombras.\n\n**Parte principal**\nLas mismas dos actividades que el Nivel Alto, con el mismo material:\n\n- **Actividad 1 · \"Dado de colores fonético\".** Ver Nivel Alto. Los niveles de juego 1 y 2 (palabra con el color y busca el pictograma) son la entrada natural para este nivel.\n- **Actividad 2 · \"Frases en construcción\".** Ver Nivel Alto. Los niveles de juego 1 y 2 (2-3 bloques) son la entrada natural para este nivel.\n\n*Las fichas del Nivel Bajo son las mismas que las del Nivel Alto, sin adaptación propia.*\n\n**Juego final**\nElegir entre dos juegos que le gusten."
+ },
+ "logo-2": {
+  "title": "Plastilina y Dados de historias",
+  "ficha": "| | |\n|---|---|\n| **Área** | Logopedia (TPT) |\n| **Tipo** | AB |\n| **Autoría** | Cecilia Camacho · notas de revisión de Roberto Fernández |\n| **Niveles** | Alto + Bajo. El Bajo es una versión simplificada de las tres actividades del Alto. |\n| **Recurso digital** | Dados de historias Pegasus (HTML): `99_PRODUCCIONES/dados-de-historias/Dados-de-Historias-Pegasus.html` |",
+  "areaNote": "",
+  "alto": "**Momento social**\n¿Qué momento más especial hemos tenido esta semana?\n\n**Momento manos a la obra · Cazador de números (o de letras)**\n\n1. En un folio se escriben a mano (sin imprimir) muchos números o letras repartidos por la hoja, desordenados y sin que estén todos. La cantidad y el rango se ajustan al peque; por ejemplo, 15-20 números entre el 1 y el 100, o un surtido de letras si quieres calentar de cara a la Actividad 1.\n2. En otro folio se dibuja una fila de cuadros en blanco (los \"huecos\"). El número de cuadros depende del nivel del peque.\n3. Juego por turnos: la persona 1 dice un número o letra y la persona 2 lo busca y lo señala en la hoja. Mientras busca, la persona 1 va marcando los cuadros en blanco uno a uno, como si fueran un reloj. Si la persona 2 lo encuentra antes de que se llenen los cuadros, lo consigue. Luego se intercambian los roles.\n\n**Parte principal**\n\n**Actividad 1 · \"Modela y suena · letras y sílabas\"**\n\n- **Objetivos:**\n  - Fonológico: reconocimiento de letras, segmentación silábica, rimas.\n  - Asociación grafema + grafomotricidad: formar y trazar la letra.\n  - Léxico-semántico: vocabulario por campos.\n- **Narrativa inicial:** \"Las letras y las palabras también se pueden tocar. Vamos a hacerlas con las manos para verlas, oírlas y sentirlas.\"\n- **Desarrollo:**\n  1. **Reconocer la letra.** Enlazando con el \"Cazador\", se elige una letra; el peque la reconoce y le pone sonido (su nombre y el sonido que hace). Buscáis 2-3 palabras que empiecen por ella.\n  2. **Hacer la letra con plastilina** (una vía o combinadas):\n     - *Con churros:* el peque hace churros y forma la letra con ellos, por partes.\n     - *Con el dedo:* se aplasta una plancha de plastilina, se marca la letra encima y el peque la repasa con el dedo varias veces diciendo su sonido. Es multisensorial: la ve, la dice y la siente.\n  3. **Estirar la palabra (sílabas).** El peque hace un churro pequeño y lo amasa como una serpiente por cada sílaba mientras dice la palabra (\"Ma-nu-el\"); después lo corta en tantos trozos como sílabas. Así comprueba la segmentación con las manos.\n- **Variaciones por nivel:**\n  - *Inicial:* letras muy conocidas y su sonido, formar la letra con tu modelo delante, palabras bisílabas frecuentes.\n  - *Intermedio:* letras variadas, trazado con el dedo con menos apoyo, trisílabas y campos semánticos.\n  - *Avanzado:* buscar la sílaba tónica (el \"tirón más fuerte\"), rimas que propone el peque solo, palabras que empiezan por la letra y que la contienen.\n- **Material:** plastilina.\n\n**Actividad 2 · \"La escena crece\"** (continuación de la Actividad 1)\n\n- **Objetivos:**\n  - Léxico-semántico: vocabulario y atributos.\n  - Morfosintáctico / expresivo: frase completa, concordancia de género y número, justificación con \"porque\".\n- **Narrativa inicial:** \"Ya tenemos letras y palabras hechas de plastilina. Vamos a darles vida montando una escena y contándola.\"\n- **Desarrollo:**\n  1. **Enlace con la Actividad 1.** Se parte de las palabras que ya trabajó (las de la letra elegida, las que segmentó o las que rimaban). El peque modela 3 de esos elementos y los coloca juntos en una mini-escena, así que la actividad es la continuación natural de la anterior.\n  2. **Vocabulario + atributos.** Nombra cada elemento y le añade una cualidad (color, tamaño, cantidad): \"un perro grande\", \"dos pelotas rojas\".\n  3. **Frase completa + concordancia.** Construye una frase de sujeto + verbo + complemento y se trabaja la concordancia sobre lo que se ve (\"¿es una pelota o un peloto?\", \"son dos, entonces son…\").\n  4. **Justificación con \"porque\".** Se le pregunta por qué pasa lo que ha montado y responde con \"porque\" (\"el perro corre porque quiere la pelota\"). Después enlaza dos ideas con \"y / pero\".\n  5. **Variante viva.** Se cambia algo de la escena (se quita o se mueve un elemento) y el peque rehace la frase con el cambio.\n- **Variaciones por nivel:**\n  - *Inicial:* 2 elementos, frase modelada por ti con un hueco que él completa, un solo atributo.\n  - *Intermedio:* 3 elementos, frase sujeto-verbo-objeto con atributo + \"porque\" con apoyo.\n  - *Avanzado:* 4-5 elementos, subordinada con \"porque / cuando\" y describir una acción que \"va a pasar\" (futuro).\n- **Material:** plastilina.\n\n**Actividad 3 · \"Los dados que cobran vida\"**\n\n- **Objetivos:**\n  - Pragmático: respetar turnos, escucha activa, construir sobre lo que dice el otro.\n  - Comprensión: secuenciación, inferencias, recontar la historia.\n  - Morfosintáctico: narrar con conectores temporales.\n- **Narrativa inicial:** \"Estos dados son mágicos y viven en la pantalla. Lo que salga en cada tirada tiene que entrar en nuestra historia, ¡y la historia no para hasta que lo digamos los dos!\"\n- **Formato:** dados de historias online en tablet o proyector. Cada tirada muestra imágenes o pictogramas al azar (quién, qué pasa, dónde…) que hay que meter en la historia.\n- **Desarrollo:**\n  1. **La tirada se gana con movimiento.** Antes de cada tirada el peque hace una acción física (lanzar una pelota al aro o a la diana, saltar a una marca del suelo o correr a un cono y volver) y solo entonces pulsa para tirar los dados. Así no está sentado todo el rato.\n  2. **Turnos alternos.** Tira el peque y añade una frase con lo que ha salido; tiras tú y añades otra construyendo sobre la suya. El turno se marca con un gesto claro.\n  3. **Giro sorpresa.** De vez en cuando una tirada es \"comodín\": el peque mete un giro inesperado y reorganiza lo que iba pasando (\"entonces, de repente…\"). Trabaja flexibilidad y morfosintaxis.\n  4. **Cierre de comprensión.** Al terminar, recuenta la historia entera en orden (primero… luego… al final…) y se le lanzan 1-2 preguntas inferenciales (\"¿por qué crees que se escondió?\", \"¿qué pasará después?\").\n- **Variaciones por nivel:**\n  - *Inicial:* 1-2 imágenes por tirada, frases de apoyo tuyas, acción física corta, recontar en 2 pasos.\n  - *Intermedio:* 3 imágenes por tirada, turnos alternos, acción física + lanzamiento a la diana, recuento en 3 pasos.\n  - *Avanzado:* más dados por tirada y \"comodín\" obligatorio en cada ronda, historia más larga, preguntas inferenciales y final inventado por el peque.\n- **Material:** Dados de historias Pegasus (online), tablet o proyector, pelota, aro o diana, conos o marcas en el suelo.\n\n**Juego final · Plastilina misteriosa**\nAdivinar qué ha hecho el otro con plastilina. Al final se destruye.",
+  "bajo": "**Momento social**\nAnticipación de la sesión.\n\n**Momento manos a la obra**\nEncuentra la pareja correcta.\n\n**Parte principal** (las tres actividades del Alto, simplificadas)\n\n- **Actividad 1 · Modela y suena (simplificada).** Reconocer una letra muy conocida y su sonido, formarla con churros con tu modelo delante o repasarla con el dedo. Sílabas solo con palabras bisílabas del entorno del peque, marcando los \"tirones\" juntos. Rimas por reconocimiento (\"¿suenan igual?\"), no por producción.\n- **Actividad 2 · La escena crece (simplificada).** Partiendo de las palabras de la Actividad 1: 2 elementos y una frase modelada por ti con un hueco que él completa (\"el perro… [corre]\"). Nombrar, añadir un atributo y decir una frase corta con concordancia básica. El \"porque\" solo si sale con naturalidad y con mucho apoyo.\n- **Actividad 3 · Los dados online (simplificada).** 1-2 imágenes por tirada. Acción física corta y sencilla (un salto o dejar caer la pelota en una caja cercana). Historia de 2 pasos con mucho apoyo tuyo (\"primero salió el perro… ¿y qué hizo?\"). Turnos muy marcados. Recontar con 2 momentos.\n\n**Juego final**\nExplota las pompas."
+ },
+ "to-1": {
+  "title": "Pinzas y dibujo secreto",
+  "ficha": "| | |\n|---|---|\n| **Área** | Terapia Ocupacional (TPT) |\n| **Tipo** | AB |\n| **Autoría** | Esther C. |\n| **Niveles** | Alto + Bajo, con actividades distintas en cada nivel |",
+  "areaNote": "",
+  "alto": "**Momento social**\n¿Qué tal las vacaciones de Semana Santa?\n\n**Momento manos a la obra · El arcoíris de la gente importante**\nEn cada color del arcoíris se dibujan las personas a las que más queremos. En el centro van las más importantes y se va alejando hacia fuera. Así vemos cuál es su círculo cercano.\n\n**Parte principal · AB**\n\n**Actividad 1 · Transporte de objetos en \"pinza\"**\n\n- **Objetivos:** equilibrio, planificación motora y coordinación global.\n- **Desarrollo:** llevar objetos de un lugar a otro sujetos entre las piernas o los codos, como si fueran pinzas, sin que se caigan. El desplazamiento se hace como mejor se apañen: despacio como pingüinos, saltando…\n- **Material:** pelotas y barreño.\n\n**Actividad 2 · Camino de pinzas**\n\n- **Objetivos:** fuerza y precisión de la mano, coordinación bilateral, atención y secuenciación.\n- **Desarrollo:** se dice un color o una categoría y el niño pone la pinza en un objeto que tenga esa característica.\n- **Variante:** colocar las pinzas una a una siguiendo un orden que se le dice (por colores, formas…). *Ejemplo: \"rojo, amarillo, morado\" → pinza en un objeto rojo, luego en uno amarillo y luego en uno morado, en ese orden.*\n- **Material:** pinzas.\n\n**Actividad 3 · Dibujo secreto**\n\n- **Objetivos:** comprensión verbal, orientación espacial, planificación y atención auditiva.\n- **Desarrollo:** das instrucciones paso a paso para hacer un dibujo sin enseñarlo (\"dibuja un círculo grande\", \"pon dos cuadrados debajo\", \"añade una línea arriba…\"). Quien dibuja no sabe qué es; con instrucciones sencillas, al final aparece una figura. Al principio se pueden escoger objetos sencillos para que se hagan una idea y puedan describirlos mejor.\n- **Material:** papel y lápiz.\n\n**Juego final · Petanca**\nSe pone un cono u objeto como destino. Desde una marca se lanza un saco de peso, una tobillera o una pelota de peso intentando acercarse lo máximo posible al cono.",
+  "bajo": "**Momento social**\nAnticipación de las actividades.\n\n**Momento manos a la obra**\nRegulación o juego simbólico con muñeco (coches, vestir al muñeco, darle de comer…).\n\n**Parte principal · AB**\n\n**Actividad 1 · Imitar cómo caminan los animales**\n\n- **Objetivos:** equilibrio, planificación motora y coordinación global.\n- **Desarrollo:** imitar la forma de caminar de distintos animales. Si el nivel es muy bajo, se puede intentar imitar sus sonidos.\n- **Material:** tarjetas de animales.\n\n**Actividad 2 · Pinzas**\n\n- **Objetivos:** fuerza y precisión de la mano, coordinación bilateral, atención y secuenciación.\n- **Desarrollo:**\n  - *Opción 1:* poner pinzas en un cojín o una caja para que el peque las quite y las deje.\n  - *Opción 2:* el material de motricidad fina que necesitéis de cada sala (encajables, torres, gomas, pinchos…).\n- **Material:** pinzas.\n\n**Actividad 3 · Dibujo conjunto**\n\n- **Objetivos:** motricidad fina y agarre del útil de escritura, coordinación óculo-manual, atención conjunta e interacción, expresión creativa.\n- **Desarrollo:** en una hoja de papel hacemos juntos un dibujo libre: garabatos, colorear un dibujo…\n- **Material:** papel y colores.\n\n**Juego final · Partes del cuerpo**\nCon un cepillo o masajeador se van señalando distintas partes del cuerpo. Se enseñan pictogramas y la terapeuta también imita."
+ },
+ "to-2": {
+  "title": "Paseo de pingüinos",
+  "ficha": "| | |\n|---|---|\n| **Área** | Terapia Ocupacional (TPT) |\n| **Tipo** | AB |\n| **Autoría** | Esther C. |\n| **Niveles** | Alto + Bajo, con actividades distintas en cada nivel |",
+  "areaNote": "",
+  "alto": "**Momento social · Estrategias para el calor**\n\"¡Uf, qué calor hace! ¿Cómo podemos hacer para estar más fresquitos en verano?\" Pensamos tres estrategias.\n\n**Momento manos a la obra · Secuencia de tres partes del cuerpo**\nUno cierra los ojos y el otro elige tres partes del cuerpo y las toca. Al abrir los ojos, tiene que recordarlas en orden.\n\n**Parte principal · AB**\n\n**Actividad 1 · Paseo de pingüinos**\n\n- **Objetivos:**\n  - Mejorar el equilibrio dinámico durante la marcha.\n  - Favorecer el control postural y la estabilidad corporal.\n  - Mejorar la praxis y la planificación motora en secuencias de movimiento.\n  - Mantener la atención sostenida durante toda la actividad.\n  - Favorecer el control inhibitorio y reducir la impulsividad.\n  - Mejorar la tolerancia a la frustración ante errores o caídas del objeto.\n- **Desarrollo:** en un lado hay objetos estables, más o menos fáciles de desplazar. Se coge uno, se pone en el empeine y se camina sobre los talones una distancia intentando que no se caiga. Al llegar a la meta se guarda el objeto y se vuelve a por otro. Si se cae por el camino, se para y se vuelve a colocar (para trabajar la frustración, se puede pedir que empiecen de nuevo).\n- **Variante:** se puede hacer en modo carrera.\n- **Material:** objetos estables para llevar en los pies.\n\n**Actividad 2 · Dibujo de sombras**\n\n- **Objetivos:**\n  - Favorecer el control motor fino y la precisión del trazo.\n  - Mejorar la percepción figura-fondo y la orientación espacial.\n  - Incrementar la capacidad de observación y análisis visual.\n- **Desarrollo:** se preparan objetos con relieve (muñecos, objetos cotidianos como tijeras, lápices, peine…) y se repasa su contorno en un folio o una pizarra.\n- **Variante modo investigación:** uno elige un objeto de la lista, el otro no mira, y al terminar tiene que adivinar de qué es la sombra.\n- **Material:** folio o pizarra, rotuladores, figuras en relieve.\n\n**Actividad 3 · Atrapa la canica**\n\n- **Objetivos:**\n  - Mejorar la coordinación óculo-manual y el tiempo de reacción.\n  - Favorecer la atención sostenida y el seguimiento visual del objeto en movimiento.\n  - Trabajar la planificación motora y el ajuste del movimiento a la velocidad.\n  - Potenciar la coordinación bilateral y el control postural.\n  - Favorecer la tolerancia a la frustración y la persistencia ante el error.\n- **Desarrollo:** el niño se coloca a un lado con un vaso o recipiente y el terapeuta enfrente. Se lanzan canicas a distintas velocidades y tiene que atraparlas con el vaso, de una en una.\n- **Material:** vaso y canicas.\n\n**Juego final · El espejo**\nCopiar los movimientos de la otra persona.",
+  "bajo": "**Momento social**\nAnticipación de las actividades.\n\n**Momento manos a la obra**\nRegulación si es necesario: cepillo o masajeador por el cuerpo, eligiendo 4-5 partes.\n\n**Parte principal · AB**\n\n**Actividad 1 · Marcha de cangrejo**\n\n- **Objetivos:** equilibrio dinámico durante la marcha, control postural, planificación motora, orientación espacial y conciencia corporal.\n- **Desarrollo:** objetos en un lado del camino y una caja en el otro. El niño coge un objeto y, con nuestras manos como guía, camina marcha atrás, de espaldas. Al llegar deja el objeto en la caja.\n- **Material:** objetos para desplazar.\n\n**Actividad 2 · Pintura de dedos**\n\n- **Objetivos:** estimulación sensorial táctil, motricidad fina y disociación de dedos, coordinación óculo-manual, exploración y expresión creativa.\n- **Desarrollo:** sobre una funda de plástico (para no gastar mucho papel; se limpia fácil) se van haciendo formas y dibujos con pintura de dedos.\n- **Material:** pintura de dedos y folios.\n\n**Actividad 3 · Atrapa el globo**\n\n- **Objetivos:** coordinación óculo-manual, seguimiento visual, coordinación bilateral, interacción y respeto de turnos.\n- **Desarrollo:** nos lanzamos el globo y lo cogemos con las manos. Intentamos que el niño participe y lo pase.\n- **Material:** globo.\n\n**Juego final**\nMovemos el esqueleto con alguna canción."
+ },
+ "psico-1": {
+  "title": "Emociones y atención",
+  "ficha": "| | |\n|---|---|\n| **Área** | Psicología (TPT) |\n| **Tipo** | AB |\n| **Autoría** | Andrea del Carmen Maniscalco · Roberto Fernández |\n| **Niveles** | Alto + Bajo, con actividades distintas en cada nivel |",
+  "areaNote": "",
+  "alto": "**Momento social**\n¿Qué es lo más divertido que te ha pasado esta semana? Imítalo.\n\n**Momento manos a la obra**\nLas estatuas.\n\n**Parte principal · AB**\n\n**Actividad 1 · El balón de la confianza**\n\n- **Desarrollo:** terapeuta y niño se sientan en lados distintos y alejados de la sala. Se le anticipa que habrá un balón en la pared con distintas preguntas. A medida que se lanza la pelota, tiene que tocar el balón con los ojos cerrados y responder a la pregunta que le toque. El terapeuta también responde, para modelar la apertura emocional y el vínculo.\n- **Material:** pelota impresa (balón con preguntas) y balón de fútbol o pelota pequeña.\n\n**Actividad 2 · El DJ de la atención**\n\n- **Desarrollo:** competición entre las dos personas: haciendo ejercicios, tienen que encontrar las piezas que faltan para completar el puzzle.\n- **Material:** puzzle. Las piezas tienen que estar escondidas.\n\n**Actividad 3 · Control de mi videojuego**\n\n- **Desarrollo:** terapeuta y niño dibujan un mando a distancia en el que cada botón tiene un significado:\n  - **Pausa:** cuando necesitas detenerte antes de reaccionar de forma impulsiva.\n  - **Rebobinar:** para pensar en qué causó la emoción.\n  - **Adelantar:** para imaginar cómo te sentirás después si te relajas.\n  - **Bajar volumen:** para reducir la intensidad de la emoción.\n  - **Subir volumen:** para potenciar una emoción positiva, recordando cosas buenas o haciendo algo que te motive.\n  - **Modo silencio:** cuando necesitas alejarte del ruido y pensar antes de actuar.\n- Pueden añadir los botones que necesiten y llevárselo a casa. Se pueden hacer role-playing y juegos de memoria diciendo cada botón y recordando qué significaba.\n- **Material:** folio y rotuladores.\n\n**Actividad 4 · Mis inferencias**\n\n- **Desarrollo:** el terapeuta usa las cámaras de las inferencias: el niño tiene que \"fotografiar\" distintas situaciones y responder a la pregunta que aparece en la cámara.\n- **Material:** cámara de las inferencias.\n\n**Juego final**\nPompas.",
+  "bajo": "**Momento social**\n¿Cómo te sientes hoy?\n\n**Momento manos a la obra**\nRegulación con la pelota de pilates, saltando y lanzando globos.\n\n**Parte principal · AB**\n\n**Actividad 1 · Lo siento, lo expreso**\n\n- **Desarrollo:** juego de los espejos. El terapeuta hace distintas expresiones e invita al niño a imitarlas. También se pueden usar pictogramas.\n- **Material:** pictogramas de emociones con la ruleta. [Ruleta de las emociones (ARASAAC)](https://static.arasaac.org/materials/2803/es/Ruleta_de_las_emociones.pptx)\n\n**Actividad 2 · Gestiono mis emociones**\n\n- **Desarrollo:** el terapeuta enseña pictogramas de distintas situaciones. Se usa un globo o una pelota que se van lanzando; a medida que avanza el juego se presenta un pictograma y se practica qué emoción estaría sintiendo.\n- **Material:** pictogramas. [Las emociones (ARASAAC)](https://static.arasaac.org/materials/1715/Las_emociones.pdf)\n\n**Actividad 3 · El DJ de las emociones**\n\n- **Desarrollo:** la música nos hace sentir distintas emociones. Todos nos movemos según lo que sentimos y, a medida que avanza la música, intentamos expresar la emoción que nos provoca.\n- **Material:** música.\n\n**Juego final**\nPlastilina."
+ },
+ "psico-2": {
+  "title": "Flexibilidad y cartas",
+  "ficha": "| | |\n|---|---|\n| **Área** | Psicología (TPT) |\n| **Tipo** | AB |\n| **Autoría** | Sandra Vizcaíno González · variantes de Roberto Fernández |\n| **Niveles** | Alto + Bajo, con actividades distintas en cada nivel. Incluye además una propuesta para adolescentes. |\n\n> En este original el **Nivel Bajo** está a la izquierda y el **Nivel Alto** a la derecha (al revés que en el resto). Lo he respetado tal cual viene etiquetado.",
+  "areaNote": "",
+  "alto": "**Momento social · Adivina qué**\nSe escribe en una tarjeta algo que haya pasado la semana anterior y hay que representarlo con mímica.\n\n**Momento manos a la obra**\nVarios pases con una pelota, subiendo el ritmo si es posible.\n\n**Parte principal · AB**\n\n**Actividad 1 · Cambio de planes**\n\n- **Desarrollo:** se presentan distintas tarjetas de situaciones o planes y tarjetas de misiones: obstáculo, cambio, oportunidad, menos tiempo, opción loca, reto. El peque tiene que adaptar el plan a lo que le toca.\n- **Variantes:**\n  - *Más fácil:* el cambio es sencillo y se ofrecen 2 alternativas.\n  - *Intermedio:* tiene que generar sus propias alternativas.\n  - *Más difícil:* aparecen dos cambios seguidos y tiene que adaptar el plan cada vez.\n\n**Actividad 2 · Consigue el código**\n\n- **Desarrollo:** se escribe un código de 5-6 números. Con cartas del UNO se van sacando números hasta completarlo. Si sale un número que ya se ha encontrado, pasa el turno al siguiente.\n- **Variantes:** añadir más números al código; usar las cartas especiales para complicar el juego.\n- **Material:** baraja de UNO, papel y lápiz.\n\n**Actividad 3 · Cara a cara**\n\n- **Desarrollo:** se construye un camino con la salida en el centro y dos recorridos en direcciones opuestas. Con la ficha en el centro se van sacando cartas del UNO. El jugador A suma el número de la carta y avanza esas casillas hacia su meta; el jugador B resta el número y avanza por su camino.\n- **Variantes:**\n  - *Fácil:* circuito corto y solo cartas del 1 al 5.\n  - *Medio:* todas las cartas numéricas.\n  - *Difícil:* introducir cartas especiales del UNO y añadir casillas con efectos.\n- **Material:** baraja de UNO, ficha, camino dibujado o marcado.\n\n**Propuesta para adolescentes · Carta blanca**\n\n- **Desarrollo:** se van sacando cartas y se responde a la pregunta o se hace el reto que corresponda. El palo o color marca el tema y el valor marca la dificultad:\n  - 2-5: pregunta sencilla\n  - 6-9: pregunta personal\n  - 10-K: reto\n- **Variante con baraja de UNO:** rojo = emociones; verde = YO (autoconocimiento); azul = nuestra red de apoyo; amarillo = retos y situaciones.\n- **Variante con baraja española:** oros = YO (autoconocimiento, gustos, objetivos e identidad); copas = emociones, situaciones que nos afectan y regulación; espadas = retos (problemas, dificultades y situaciones complicadas); bastos = amistades, familia, relaciones, conflictos y habilidades sociales.\n\n**Recurso online · Lo que hay detrás**\n[Lo que hay detrás | Genially](https://view.genially.com/6a9fdf630f7e6fae27178438)\n\n**Juego final**\nEstiramientos de árbol.",
+  "bajo": "**Momento social · Adivina qué**\nSe escribe en una tarjeta algo que haya pasado en verano y hay que representarlo con mímica.\n\n**Momento manos a la obra**\nDado de imitación con distintas acciones, lo más rápido posible.\n\n**Parte principal · AB**\n\n**Actividad 1 · Cuando suene, cambia**\n\n- **Desarrollo:** se asocia cada sonido a una acción:\n  1. Palmada → dar una palmada.\n  2. Golpe en la mesa → tocar la mesa.\n  3. Pie → dar un pisotón.\n  4. Piernas → golpe en las piernas.\n\n**Actividad 2 · Estatuas musicales**\n\n- **Desarrollo:** con tres tarjetas visuales (1. Bailar, 2. Quieto, 3. Despacio). Suena la música y el niño se mueve; el psicólogo va mostrando las tarjetas y el niño ajusta su movimiento.\n- **Material:** música y tres tarjetas visuales.\n\n**Actividad 3 · Repite el patrón** (si procede)\n\n- **Desarrollo:** se presenta un modelo coloreado. El niño observa cómo están colocados los bloques y de qué color es cada uno, y en el espacio en blanco reproduce el mismo patrón coloreando cada bloque del color que toca.\n- **Variantes:**\n  - *Niveles muy bajos:* añadir una pequeña pista de color dentro o junto a los bloques blancos, indicando qué colores necesita usar.\n  - *Más dificultad:* más colores y patrones más largos, o mirar el modelo unos segundos, taparlo y reproducirlo de memoria.\n- **Material:** ficha con modelo coloreado y plantilla en blanco, colores.\n\n**Juego final**\nJuego de puntería."
+ },
+ "fisio-1": {
+  "title": "Normas del UNO",
+  "ficha": "| | |\n|---|---|\n| **Área** | Fisioterapia (TPT) |\n| **Tipo** | AB |\n| **Autoría** | Alba Fonseca García · Roberto Fernández |\n| **Niveles** | Nivel Alto |",
+  "areaNote": "> Las dos sesiones de Fisioterapia son de Nivel Alto. Cada una tiene dos propuestas de parte principal: una de sala y otra con material de agua (churro, colchoneta, bordillo, tabla).",
+  "alto": "**Momento social**\nYa estamos de vuelta: ¿hay ganas de volver a la rutina?\n\n**Momento manos a la obra · Caza de cartas UNO**\nSe reparten cartas del UNO bocabajo por la sala. La fisio dice un color y una forma de moverse (como un cangrejo, a la pata coja, como un oso, de puntillas…) y hay que ir a buscar una carta de ese color desplazándose así. Si la carta que levantan no es del color pedido, la vuelven a dejar bocabajo y siguen buscando. Gana quien junte primero 4 cartas.\n\n**Parte principal · AB · Temática \"Normas del UNO\"**\n\nLos ejercicios se eligen según el color de la carta y las cartas especiales cambian la regla:\n\n**Propuesta 1 · Sala**\n\n- **Objetivos:**\n  1. Trabajo de fuerza extensora: isométrica, concéntrica y excéntrica.\n  2. Mantenimiento del rango de movimiento (ROM).\n  3. Coordinación dinámica y multitarea.\n\n| Carta | Rojo | Verde | Azul | Amarillo |\n|---|---|---|---|---|\n| **Ejercicio base** | 10 sentadillas agarrados a la goma entre los dos; se va soltando la goma para generar reacciones de equilibrio | Alcances con un pie en el BOSU, dejando las fichas detrás | Levantarse 10 veces desde posición de caballero para lanzarse pelotas / levantarse y lanzar la pelota para dar al de enfrente | En cuadrupedia o sobre la pelota, coger los aros en plancha |\n| **Cambio de sentido** | Hacerlo desplazándose por la sala con pasos laterales | Coger las fichas de atrás y ponerlas delante | En vez de lanzarlas, cogerlas al vuelo | En vez de sacarlos, ponerlos |\n| **Prohibido** | Tirar un dado y hacer tantas sentadillas como salgan | Elegir entre toques e impulsos en el BOSU o hacer una torre con rotación de tronco | Elegir entre recibir las pelotas o levantarse 10 veces de caballero | Aguantar en plancha el tiempo que tarde la fisio en poner y sacar los aros |\n| **Chúpate 2** | Sentadillas x2 en el sitio | Cada ficha con un pie | Hacerlo x2 | Ponerlos y sacarlos |\n| **Chúpate 4** | Sentadillas x2 con desplazamientos laterales | Coger las fichas y dejarlas / montar con un pie y desmontar con el otro | 10 veces levantarse, 10 coger pelotas, 10 levantarse y 10 lanzar pelotas | Ponerlos y sacarlos x2 sin bajar, aguantando en plancha |\n\n- **Cambio de color:** elegir otro color y hacer el ejercicio que salga.\n- **Material:** goma grande, fichas de construcción, pelotas de la piscina de bolas o pelotas de papel, aros pequeños y cacahuete, BOSU, rampa-step (adaptación para un usuario concreto).\n\n**Propuesta 2 · Con material de agua**\n\n- **Objetivos:**\n  - Mejorar el control postural.\n  - Equilibrio dinámico.\n  - Resistencia durante desplazamientos en el agua.\n  - Mantenimiento del ROM.\n\n| Carta | Rojo | Verde | Azul | Naranja |\n|---|---|---|---|---|\n| **Ejercicio base** | 10 saltos agarrados a la goma entre los dos; se va soltando la goma para generar reacciones de equilibrio | Alcances desde step, en apoyo monopodal y con la mano contraria al pie apoyado, lanzando las fichas a la colchoneta | Agarrados al churro: rodilla al pecho, 5 pataleos, rodilla al pecho de nuevo | En cuadrupedia sobre la colchoneta, aguantando las reacciones de desequilibrio |\n| **Cambio de sentido** | Hacerlo saltando hacia atrás | Se lanzan las fichas desde la colchoneta; tienen que cogerlas y hacer rotación de tronco | Hacerlo boca arriba | Intentarlo de rodillas sin apoyar las manos |\n| **Prohibido** | Hacerlo sin goma | Se puede hacer con apoyo bipodal | Hacerlo sin llevar las rodillas al pecho | Ir en cuadrupedia pero sin reacciones de equilibrio |\n\n- **Cambio de color:** elegir otro color y hacer el ejercicio que salga.\n- **Chúpate 2:** hacerlo x2. **Chúpate 4:** hacerlo x4.\n- **Material:** colchoneta, goma grande, 2 steps, churro, fichas de construcción, lastres.\n\n**Juego final · El semáforo del UNO**\nLa fisio levanta una carta de color y todos reaccionan lo más rápido posible: rojo = estatua congelada, verde = carrera en el sitio, azul = saltos, amarillo = sentadilla y aguantar abajo. Cada ronda va un poco más rápido, y con un \"¡UNO!\" se cambia de sentido (se hace al revés de lo que dice la carta)."
+ },
+ "fisio-2": {
+  "title": "Super Mario",
+  "ficha": "| | |\n|---|---|\n| **Área** | Fisioterapia (TPT) |\n| **Tipo** | AB |\n| **Autoría** | Alba Fonseca García · Roberto Fernández |\n| **Niveles** | Nivel Alto |",
+  "areaNote": "> Las dos sesiones de Fisioterapia son de Nivel Alto. Cada una tiene dos propuestas de parte principal: una de sala y otra con material de agua (churro, colchoneta, bordillo, tabla).",
+  "alto": "**Momento social**\nYa estamos de vuelta: ¿hay ganas de volver a la rutina?\n\n**Momento manos a la obra**\nLargo a caballito saltando.\n\n**Parte principal · AB**\n\n**Propuesta 1 · Sala · Temática \"Videojuegos: Super Mario\"**\n\n- **Objetivos:**\n  - Trabajo de fuerza extensora: isométrica, concéntrica y excéntrica.\n  - Mantenimiento del ROM.\n  - Coordinación dinámica y multitarea.\n- **Desarrollo:**\n  1. **Circuito Reino Champiñón** (equilibrio + marcha):\n     - Pasar entre conos = \"esquivar Goombas\".\n     - Caminar por una línea o una colchoneta = \"puente del castillo\".\n     - Step o escalón = \"saltos de plataforma\".\n     - Lanzar aro o pelota = \"activar tubería\".\n  2. **Caza de monedas** (alcances + movilidad). Objetivo: conseguir 10 monedas para desbloquear el castillo.\n     - Arriba → alcance superior.\n     - A un lado → transferencias de peso.\n     - En el suelo → flexión y alcance inferior.\n  3. **Power-ups** (cambios motores):\n     - Seta roja, \"Mario crece\" → movimientos grandes, amplitud máxima.\n     - Flor de fuego → lanzar pelotas a objetivos.\n     - Estrella → caminar más rápido durante 20 segundos.\n     - Traje pingüino → desplazamiento lateral o brazos abiertos para el equilibrio.\n- **Material:** goma grande, pelotas de la piscina de bolas o pelotas de papel, aros pequeños y un cono, cuerda, rampa-step (adaptación para un usuario concreto).\n\n**Propuesta 2 · Con material de agua · Temática \"Exploradores del cuerpo\"**\n\n- **Manos a la obra:** largo a caballito saltando.\n- **Juego:** encestar en el cubo + animales.\n- **Desarrollo:** se preparan tarjetas con descripciones de animales y cada animal es un ejercicio. En el bordillo, sobre el step y manteniendo el equilibrio en distintas posiciones, se van diciendo las pistas para adivinar el animal. Cuando lo adivinan, hacen el ejercicio de ese animal.\n- **Material:** cubo y pelota, tarjetas de animales, tabla, churro, step, pesas.\n\n**Juego final · ¡Salta, Mario!**\nLa fisio sostiene globos o pelotas a distintas alturas: son los \"bloques sorpresa\". El peque salta para darles con la cabeza o con la mano como Mario, y cada bloque que toca es una moneda. Se termina cuando consigue 10 monedas."
+ },
+ "multi-1": {
+  "title": "Pelota",
+  "ficha": "| | |\n|---|---|\n| **Área** | Multideporte (IS) |\n| **Tipo** | AB |\n| **Canción de la semana** | *I'm a Believer* – Smash Mouth |\n| **Autoría** | No consta |\n| **Niveles** | Alto + Bajo |\n| **Objetivo general de la parte principal** | Usar la pelota dentro del juego (pases, desplazamientos, etc.) |",
+  "areaNote": "",
+  "alto": "**Calentamiento social**\nHablamos sobre los deportes de balón: cuáles nos gustan más, equipos que nos gustan…\n\n**Calentamiento físico · Movilidad articular en círculo**\nEn grupo, cada día uno puede ser el jefe del calentamiento y guiar esta parte, para fomentar la comunicación y las relaciones sociales. Si no puede hacerse de forma autónoma, el profe guía los movimientos acompañando el cuerpo del peque.\n\n- Movilidad: tobillos, rodillas, caderas, tronco, brazos, muñecas y dedos, cuello.\n- Desplazamientos: rodillas arriba, talones al culo, desplazamiento lateral, carrera hacia delante y hacia atrás.\n\n**Calentamiento físico · Manos a la obra: la muralla humana**\nTodos se colocan en círculo agarrados de las manos, formando una muralla. Dentro del círculo uno mueve un balón por toda la sala y el resto tiene que moverse en la misma dirección para que el balón no se salga del círculo.\n- El primero puede ser el profe.\n- Recomendación: usar una pelota de pilates grande que cueste mover, o una pelota normal sin poder dar patadas fuertes; incluso pueden llevarla agarrada.\n- Se pueden poner varias bases a las que haya que llegar con el balón.\n- **Objetivo:** activación.\n\n**Parte principal · Pelota**\n\n1. **El super recogepelotas**\n   - **Objetivo:** guardar todas las pelotas de su color en el saco de su equipo.\n   - **Desarrollo:** se hacen equipos y cada uno tiene una bolsa de basura o saco grande en el que se pueda meter un peque. El profe reparte por el espacio pelotas de los colores de cada equipo (con tres equipos, tres tipos de pelota). A la salida, todos intentan guardar las pelotas de su color de una en una en su saco. Gana el equipo que meta más pelotas en el tiempo que marque el profe.\n2. **El rey de la silla**\n   - **Objetivo:** llegar corriendo a la silla antes de que te alcance la pelota.\n   - **Desarrollo:** se colocan en círculo dejando un hueco vacío con una silla o un sitio para sentarse. La liga quien se sienta en la silla. A la salida, los compañeros se pasan la pelota de uno en uno hasta completar el círculo, y quien la liga tiene que dar la vuelta corriendo al círculo y volver a su silla antes de que llegue el balón.\n3. **Limbo aéreo**\n   - **Objetivo:** pasar por el limbo sin que se caiga el globo.\n   - **Desarrollo:** se monta un limbo (conos con picas o cualquier cosa que sujete una pica a cierta altura; pueden ser varios). En fila, lanzan el globo al aire y, mientras está en el aire, pasan por debajo del limbo como quieran.\n   - **Versión cooperativa:** todos tienen que pasar a la vez, como trabajo de equipo.\n\n**Juego final · Lucha de pelotas**\nDos equipos, uno frente al otro, con una pelota de pilates (o una pelota grande) en medio. Cada peque tiene varias pelotas y las lanza para que la pelota grande quede más cerca del equipo contrario.",
+  "bajo": "**Calentamiento social**\nHablamos sobre la vuelta de las vacaciones: qué nos han traído los Reyes, cómo lo hemos pasado…\n\n**Calentamiento físico · Movilidad articular en círculo**\nIgual que en el Nivel Alto (mismos movimientos y mismos desplazamientos), con un desplazamiento más: **a cuatro patas**.\n\n**Calentamiento físico · Manos a la obra: la muralla humana adaptada**\nEl mismo juego, pero nos cogemos de las manos con el peque, ponemos la pelota dentro y nos movemos por el espacio siguiendo su dirección, corriendo con él. Si es muy complicado, se puede simplemente lanzar la pelota e ir corriendo a recogerla para activarnos. También se pueden poner bases a las que llegar con el balón.\n- **Objetivo:** activación.\n\n**Parte principal · Pelota**\n\n1. **El super recogepelotas**\n   - **Objetivo:** guardar todas las pelotas de su color en su saco.\n   - **Desarrollo:** una bolsa de basura o saco grande en el que se pueda meter el peque; si no quiere, puede llevarlo en la mano con ayuda del profe. El profe reparte pelotas de colores y, a la salida, el peque guarda las de su color de una en una.\n2. **El rey de la pelota**\n   - **Objetivo:** correr para colocar las pelotas en los conos.\n   - **Desarrollo:** se ponen los conos en fila. El peque coge las pelotas de una en una y las va colocando sobre los conos (chinos) hasta completarlos, yendo y volviendo corriendo. Se colocan de atrás hacia delante para que el desplazamiento se vaya acortando.\n3. **Limbo aéreo**\n   - **Objetivo:** pasar por el limbo sin que se caiga el globo.\n   - **Desarrollo:** el mismo montaje que en el Nivel Alto, pero se puede hacer pasando por debajo con el globo en la mano o simplemente jugando con el globo por el espacio.\n\n**Juego final · Lucha de pelotas**\nIgual que en el Nivel Alto."
+ },
+ "multi-2": {
+  "title": "Mario Bros",
+  "ficha": "| | |\n|---|---|\n| **Área** | Multideporte (IS) |\n| **Tipo** | AB |\n| **Canción de la semana** | *Peaches* – Jack Black (*Super Mario Bros. La película*) |\n| **Autoría** | No consta |\n| **Niveles** | **Nivel Alto y Bajo juntos**: el original es una única sesión para los dos niveles, sin adaptaciones separadas. |",
+  "areaNote": "",
+  "alto": "**Calentamiento social**\nCómo le ha ido el puente a cada uno; mejor si intercambian la información entre ellos.\n\n**Calentamiento físico · Movilidad articular en círculo**\nIgual que en la Sesión 1: un jefe del calentamiento cada día (o el profe guía los movimientos si hace falta).\n- Movilidad: tobillos, rodillas, caderas, tronco, brazos, muñecas y dedos, cuello.\n- Desplazamientos: rodillas arriba, talones al culo, desplazamiento lateral, carrera hacia delante y hacia atrás.\n\n**Calentamiento físico · Manos a la obra: mini circuito Mario Bros**\nUn circuito rápido \"para entrenarles para lo que se les viene\": aros en fila para saltar seguidos, un banco, un túnel y una colchoneta para dar 2 volteretas. Al final cogen algo rojo que simula la seta roja de Mario Bros, que les hace más fuertes mientras la lleven. Tienen que hacer el circuito las veces que marquéis para ganarse la seta.\n- **Objetivo:** activación.\n\n**Parte principal · Mini juegos Mario Bros**\nCada ejercicio corresponde a algo de la película de Mario.\n\n1. **King Kong**\n   - **Objetivo:** dar a los niños con las pelotas.\n   - **Desarrollo:** se colocan como en un balón prisionero. Lanza el profe o lanzan los propios niños; a quien le dan, pasa a ligarla.\n2. **Mario Kart**\n   - **Objetivo:** hacer una carrera por el circuito y terminar encestando en la canasta.\n   - **Desarrollo:** se monta un circuito con cuerdas o conos y lo recorren con lo que tengáis para simular una carrera de Mario Kart, hasta llegar a la canasta, donde tienen que lanzar y encestar. Se repite las veces que veáis necesarias si se lo están pasando bien.\n\n**Juego final · El castillo de Bowser**\nEl profe deja montado un castillo con las piezas que haya. Los peques tienen que llegar hasta él pasando por colchonetas, bloques o un banco, como si el suelo fuera lava, y al llegar lo derriban con una pelota. ¡Y habrán ganado!",
+  "bajo": "**Calentamiento social**\nCómo le ha ido el puente a cada uno; mejor si intercambian la información entre ellos.\n\n**Calentamiento físico · Movilidad articular en círculo**\nIgual que en la Sesión 1: un jefe del calentamiento cada día (o el profe guía los movimientos si hace falta).\n- Movilidad: tobillos, rodillas, caderas, tronco, brazos, muñecas y dedos, cuello.\n- Desplazamientos: rodillas arriba, talones al culo, desplazamiento lateral, carrera hacia delante y hacia atrás.\n\n**Calentamiento físico · Manos a la obra: mini circuito Mario Bros**\nUn circuito rápido \"para entrenarles para lo que se les viene\": aros en fila para saltar seguidos, un banco, un túnel y una colchoneta para dar 2 volteretas. Al final cogen algo rojo que simula la seta roja de Mario Bros, que les hace más fuertes mientras la lleven. Tienen que hacer el circuito las veces que marquéis para ganarse la seta.\n- **Objetivo:** activación.\n\n**Parte principal · Mini juegos Mario Bros**\nCada ejercicio corresponde a algo de la película de Mario.\n\n1. **King Kong**\n   - **Objetivo:** dar a los niños con las pelotas.\n   - **Desarrollo:** se colocan como en un balón prisionero. Lanza el profe o lanzan los propios niños; a quien le dan, pasa a ligarla.\n2. **Mario Kart**\n   - **Objetivo:** hacer una carrera por el circuito y terminar encestando en la canasta.\n   - **Desarrollo:** se monta un circuito con cuerdas o conos y lo recorren con lo que tengáis para simular una carrera de Mario Kart, hasta llegar a la canasta, donde tienen que lanzar y encestar. Se repite las veces que veáis necesarias si se lo están pasando bien.\n\n**Juego final · El castillo de Bowser**\nEl profe deja montado un castillo con las piezas que haya. Los peques tienen que llegar hasta él pasando por colchonetas, bloques o un banco, como si el suelo fuera lava, y al llegar lo derriban con una pelota. ¡Y habrán ganado!",
+  "comun": true
+ },
+ "pisci-1": {
+  "title": "Vasos",
+  "ficha": "| | |\n|---|---|\n| **Área** | Piscina / Piscinasus (IS) |\n| **Tipo** | AB |\n| **Autoría** | No consta |\n| **Niveles** | Alto + Bajo |",
+  "areaNote": "",
+  "alto": "**Calentamiento social**\nHablamos sobre qué tal la semana y cuánto les queda para acabar el cole.\n\n**Calentamiento físico · Momento bordillo**\nCalentamiento articular con varios ejercicios:\n- **Pataleos:** movimiento rápido de piernas para activar la circulación.\n- **Lateralidad con una pierna:** levantar una pierna hacia un lado, trabajando el equilibrio.\n- **Lateralidad con la otra pierna:** lo mismo con la pierna contraria.\n- **Manos juntas:** mover los brazos juntos de lado a lado.\n- **Lateralidad con una mano:** mover una mano lateralmente.\n- **Lateralidad con la otra mano:** lo mismo con la otra.\n- **Lluvia asturiana:** levantar las manos y moverlas como si se tirara agua al aire.\n- **Salpicamos a los profes:** todos salpican agua a uno de los profes.\n\nEstos ejercicios activan las articulaciones y fomentan la coordinación y la participación.\n\n**Calentamiento físico · Momento al agua patos: guerra de pelotas**\n- **Objetivo:** pasar al otro lado de la piscina sin que el profe te toque.\n- **Reglas:** todos los peques se colocan en un lado de la piscina con el profe delante, y tienen que conseguir superarle sin que les toque.\n\n**Parte principal · Vasos**\n\n1. **Juego 1 · Vasos de agua**\n   - **Objetivo:** llenar el cubo de agua.\n   - **Desarrollo:** en el punto B están los vasos de cada equipo. Se combina con desplazamientos: tabla y pies de crol (con la pieza encima de la tabla), de espaldas con la pieza encima de la tabla, abrazando la tabla e incluso \"surfero loco\". Hay que recoger todos los vasos y llevarlos a la colchoneta para que cada equipo llene su cubo de agua, por relevos o todos a la vez y con o sin tabla. Gana el equipo que más llene el cubo.\n   - **Material:** vasos de agua y cubos.\n2. **Juego 2 · Creación de una pirámide de vasos**\n   - **Objetivo:** colocar los vasos en forma de pirámide y que quede estable.\n   - **Desarrollo:** se mantienen los dos equipos del principio. En el punto B se colocan dos colchonetas como zona de construcción (también vale cualquier bordillo, para que sea más estable) y cada equipo construye su pirámide. Se pueden usar tablas como base. Cuando la terminan, tienen que llevarla del punto A al punto B y volver sin que se caiga.\n   - **Material:** vasos y zona de construcción.\n3. **Juego 3 · Velocidad y buceo**\n   - **Objetivo:** conseguir pelotas para derribar.\n   - **Desarrollo:** se mantienen los dos equipos. Por relevos, los peques saltan desde el bordillo, pasan por debajo de aros de buceo y nadan hasta la zona de pelotas (un donut o churros con conector). Cogen una pelota y vuelven nadando. Cuando tienen varias pelotas se pasa al juego final: destrucción de la torre.\n   - **Material:** pelotas y aros para bucear.\n\n**Juego final · Surfero loco**\nSe van subiendo de uno en uno a la colchoneta e intentan aguantar de pie sin caerse mientras los demás la mueven.",
+  "bajo": "**Calentamiento social**\nTener siempre un momento de interacción con el peque: preguntarle qué tal, con pictogramas o con la comunicación que mejor os funcione.\n\n**Calentamiento físico · Momento bordillo**\nEl mismo que en el Nivel Alto.\n\n**Calentamiento físico · Momento al agua patos**\n- Como alternativa se puede jugar a un pilla-pilla. A veces funciona muy bien perseguirles para que se activen y, con los nervios, corran por la piscina. Si no es posible, cualquier desplazamiento que les lleve al nivel de activación que buscas.\n- **Consejo:** en niveles muy bajitos es mejor activar con saltos, remolinos, serpenteos o carrera; algo físico y nada cognitivo.\n\n**Parte principal · Vasos**\n\n1. **Juego 1 · Vasos de agua**\n   - **Objetivo:** llenar el cubo de agua.\n   - **Desarrollo:** en el punto B están los vasos de cada equipo. Si llevar la tabla es muy difícil para meter técnica, que naden solo transportando los vasos y llenando los cubos.\n   - **Material:** vasos de agua y cubos.\n2. **Juego 2 · Fila de vasos de colores**\n   - **Objetivo:** hacer una secuencia.\n   - **Desarrollo:** en vez de una torre, hacen una fila con los vasitos. Si hay vasos de colores, se les dice la secuencia de colores que tienen que seguir.\n   - **Material:** vasos y zona de construcción.\n3. **Juego 3 · Velocidad y buceo**\n   - **Objetivo:** conseguir pelotas para derribar.\n   - **Desarrollo:** el mismo relevo que en el Nivel Alto (salto desde el bordillo, aros de buceo y nado hasta la zona de pelotas). Como en el Nivel Bajo no hay torre que derribar, se pueden colocar las pelotas en porta-churros y pasar directamente al juego final.\n   - **Material:** pelotas y aros para bucear.\n\n**Juego final · Concurso de saltos**\nVarias rondas, cada vez con más reto y de forma creativa:\n- Saltar dentro del donut.\n- Coger una pelota en el aire.\n- Pasar la pelota."
+ },
+ "pisci-2": {
+  "title": "Pepa Pig",
+  "ficha": "| | |\n|---|---|\n| **Área** | Piscina / Piscinasus (IS) |\n| **Tipo** | AB |\n| **Autoría** | No consta |\n| **Niveles** | Nivel Alto |",
+  "areaNote": "",
+  "alto": "**Calentamiento social**\nHablamos sobre qué tal la semana.\n\n**Calentamiento físico · Momento bordillo**\nEl mismo calentamiento articular que en la Sesión 1: pataleos, lateralidad con cada pierna, manos juntas, lateralidad con cada mano, lluvia asturiana y salpicar a los profes.\n\n**Calentamiento físico · Momento al agua patos: los animales acuáticos**\n- **Objetivo:** hacer los animales lo mejor posible.\n- **Reglas:** todos juntos en un lado de la piscina, van haciendo como se les ocurra los animales acuáticos que vamos diciendo: rana, cangrejo, delfín, pato, pulpo, etc.\n\n**Parte principal · Pepa Pig**\n\n1. **Juego 1 · Recogida de materiales**\n   - **Objetivo:** conseguir todos los bloques posibles.\n   - **Desarrollo:** van a por los bloques de colores de distintas maneras:\n     - Con tabla: colocan el bloque encima.\n     - Con churro: lo llevan de espaldas.\n     - Metiendo la cabeza: intentan bucear un poco con él.\n   - **Material:** tabla, churro y bloques.\n2. **Juego 2 · Construcción de la casa de Pepa Pig**\n   - **Objetivo:** no juntar colores.\n   - **Desarrollo:** construyen entre todos la casa de Pepa Pig. La única norma es que un bloque no puede tocar a otro de su mismo color.\n   - **Material:** bloques.\n3. **Juego 3 · Salvar a Pepa**\n   - **Objetivo:** recoger a Pepa y llevarla a la casa.\n   - **Desarrollo:** se colocan 2 aros sumergibles; tienen que pasar buceando, coger un muñeco de Pepa Pig y volver a colocarlo.\n   - **Material:** aros sumergibles y muñeco de Pepa Pig.\n\n**Juego final · Guerra de pistolas de agua**\nSe hacen 2 equipos, se reparten pistolas de agua y se hace una guerra. Los profes también participan."
+ },
+ "futbol-1": {
+  "title": "Exploradores con balón",
+  "ficha": "| | |\n|---|---|\n| **Área** | Fútbol (IS) |\n| **Tipo** | AB |\n| **Autoría** | No consta |\n| **Niveles** | Nivel Alto |",
+  "areaNote": "> Las dos sesiones de Fútbol son de Nivel Alto. El calentamiento físico de movilidad articular es el mismo que en Multideporte.",
+  "alto": "**Calentamiento social**\nHablamos de qué tal la semana y de si están viendo los partidos de España.\n\n**Calentamiento físico · Movilidad articular en círculo**\nEn grupo, cada día uno puede ser el jefe del calentamiento y guiar esta parte, para fomentar la comunicación y las relaciones sociales. Si no puede hacerse de forma autónoma, el profe guía los movimientos acompañando el cuerpo del peque.\n\n- Movilidad: tobillos, rodillas, caderas, tronco, brazos, muñecas y dedos, cuello.\n- Desplazamientos: rodillas arriba, talones al culo, desplazamiento lateral, carrera hacia delante y hacia atrás.\n\n**Calentamiento físico · Exploradores con balón**\n- **Objetivo:** activación.\n- **Desarrollo:** cada niño tiene un balón y se desplaza libremente por el espacio: andando, empujando el balón con el pie, llevándolo con las manos si lo necesita o conduciendo con ayuda. El entrenador va dando consignas sencillas:\n  - \"¡Paramos!\"\n  - \"¡Pisamos el balón!\"\n  - \"¡Nos sentamos!\"\n  - \"¡Levantamos el balón!\"\n  - \"¡Cambiamos de dirección!\"\n\n**Parte principal**\n\n1. **Desfile del pase.** Los niños corren por la zona mientras el profe tiene el balón y decide a quién pasárselo y cuándo. Quien lo recibe tiene que hacer un gesto de animal o lo que el profe le mande.\n2. **Saltos y zigzag.** Saltan con los pies juntos sobre las vallas y, a continuación, cogen un balón y hacen un zigzag. Se les puede decir con qué pie tienen que llevar el balón.\n3. **Pared y finalización.** Se colocan en fila y el profe se pone cerca de ellos. Cada niño le pasa el balón, el profe se lo devuelve hacia un lado y el niño dispara a portería.\n\n- **Material** (según los dibujos del original): balones, vallas, conos y portería.\n\n**Juego final · Partidillo**\nJugamos un partido de fútbol."
+ },
+ "futbol-2": {
+  "title": "Semáforo futbolístico",
+  "ficha": "| | |\n|---|---|\n| **Área** | Fútbol (IS) |\n| **Tipo** | AB |\n| **Autoría** | No consta |\n| **Niveles** | Nivel Alto |",
+  "areaNote": "> Las dos sesiones de Fútbol son de Nivel Alto. El calentamiento físico de movilidad articular es el mismo que en Multideporte.",
+  "alto": "**Calentamiento social**\nHablamos de qué tal el primer día de cole.\n\n**Calentamiento físico · Movilidad articular en círculo**\nIgual que en la Sesión 1: un jefe del calentamiento cada día (o el profe guía los movimientos si hace falta).\n- Movilidad: tobillos, rodillas, caderas, tronco, brazos, muñecas y dedos, cuello.\n- Desplazamientos: rodillas arriba, talones al culo, desplazamiento lateral, carrera hacia delante y hacia atrás.\n\n**Calentamiento físico · Semáforo futbolístico**\n- **Objetivo:** activación.\n- **Desarrollo:** se desplazan por el espacio con un balón mientras les vamos diciendo qué tienen que hacer: conducir con el pie izquierdo, conducir con el pie derecho, coger el balón con las manos, rematar de cabeza, etc.\n\n**Parte principal**\n\n1. **Ladrón de balones.** Todos los niños tienen un balón menos uno, que se encarga de perseguir al resto para robárselo.\n2. **Derribador de torres.** Se hacen 2 equipos y cada uno monta su torre con conos al fondo de su campo. Desde una línea marcada, por turnos, los niños golpean el balón con el interior del pie para intentar derribar la torre del equipo contrario. Cuando una torre cae, el equipo que la ha perdido la vuelve a montar lo más rápido posible mientras el otro sigue tirando. Gana el equipo que más torres derribe en el tiempo que marque el profe.\n   - *Para facilitarlo:* acercar la línea de tiro o poner la torre más ancha.\n   - *Para complicarlo:* poner un niño de cada equipo como guardián de su torre, o tirar solo con el pie menos hábil.\n3. **Pared y finalización.** Se colocan en fila y el profe se pone cerca de ellos. Cada niño le pasa el balón, el profe se lo devuelve hacia un lado y el niño dispara a portería.\n\n- **Material** (según los dibujos del original): balones, conos, aros o discos de colores y portería.\n\n**Juego final · Partidillo**\nJugamos un partido de fútbol."
+ }
+};
+
+/* ===================== ESTADO ===================== */
+const state = {view:"home", area:null, mode:"extra", nivel:"alto", n:1};
+const app = document.getElementById("app");
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function curHash(){
+  return state.view==="home" ? "inicio" :
+    state.mode==="extra" ? `${state.area}-extra-${state.nivel}-${state.n}` : `${state.area}-alarga-${state.nivel}`;
+}
+function setHash(){
+  const h = curHash();
+  try { if (location.hash.slice(1)!==h) history.replaceState(null,"","#"+h); } catch(e) { /* el visor no permite cambiar la URL: se ignora */ }
+}
+function readHash(){
+  const h = location.hash.slice(1); if(!h || h==="inicio") return;
+  const p = h.split("-"); const a = AREAS.find(x=>x.id===p[0]); if(!a) return;
+  state.view="area"; state.area=a.id;
+  if(p[1]==="extra"){state.mode="extra"; if(p[2]==="alto"||p[2]==="bajo") state.nivel=p[2]; if(p[3]==="1"||p[3]==="2") state.n=+p[3];}
+  else if(p[1]==="alarga"){state.mode="alarga"; if(p[2]==="alto"||p[2]==="bajo") state.nivel=p[2];}
+}
+
+/* ===================== VISTAS ===================== */
+function renderHome(){
+  document.documentElement.style.setProperty("--accent","var(--tpt)");
+  document.documentElement.style.setProperty("--accent2","var(--tpt2)");
+  const tiles = svc => AREAS.filter(a=>a.svc===svc).map(a=>{
+    const s1 = SESSIONS[`${a.id}-1`], s2 = SESSIONS[`${a.id}-2`];
+    const names = [s1,s2].filter(Boolean).map(s=>esc(s.title)).join(" · ");
+    return `<button class="tile ${svc}" data-area="${a.id}"><span class="dot" aria-hidden="true"></span><strong>${a.name}</strong><small>${names}</small></button>`;
+  }).join("");
+  app.innerHTML = `
+    <section class="group"><div class="group-head"><h2>Terapia para Todos</h2><span>Slot de 40 min</span></div><div class="tiles">${tiles("tpt")}</div></section>
+    <section class="group"><div class="group-head"><h2>Inclusive Sport</h2><span>Slot de 30 min</span></div><div class="tiles">${tiles("is")}</div></section>
+    <section class="howto" aria-label="Cómo funciona">
+      <div class="howto-one"><h3>Sesión extra · siempre suma +1 al saldo</h3><p>Hay dos formas de darla:</p>
+        <div class="howto-two"><div><strong>Otro día</strong><span>Eliges una sesión de la biblioteca según tu área y el nivel del peque.</span></div><div><strong>Alargando la de hoy</strong><span>Haces la sesión de esta semana en versión extendida. En TPT, solo en nivel alto.</span></div></div></div>
+    </section>
+    <footer>Biblioteca de Sesiones Extra · Dirección Técnica · Fundación Pegasus</footer>`;
+  app.querySelectorAll("[data-area]").forEach(b=>b.onclick=()=>{state.view="area";state.area=b.dataset.area;state.mode="extra";state.n=1;render();window.scrollTo(0,0);});
+}
+
+function seg(name, opts, current, big){
+  return `<div class="seg${big?" big":""}" role="group" aria-label="${name}">${opts.map(([v,l])=>`<button data-k="${name}" data-v="${v}" aria-pressed="${String(v)===String(current)}">${l}</button>`).join("")}</div>`;
+}
+
+function renderArea(){
+  const a = AREAS.find(x=>x.id===state.area), s = SVC[a.svc];
+  document.documentElement.style.setProperty("--accent", a.svc==="tpt"?"var(--tpt)":"var(--is)");
+  document.documentElement.style.setProperty("--accent2", a.svc==="tpt"?"var(--tpt2)":"var(--is2)");
+  let body = "";
+  if(state.mode==="extra") body = renderSession(a,s); else body = renderAlarga(a,s);
+  app.innerHTML = `
+    <nav class="navbar" aria-label="Navegación"><button class="back" id="back">⌂ Inicio</button><span class="trail">${a.name} · Sesión extra · ${state.mode==="extra"?`Otro día · Nivel ${state.nivel} · Sesión ${state.n}`:`Alargando · Nivel ${state.nivel}`}</span><button class="back up" id="toTop" aria-label="Volver arriba">↑</button></nav>
+    <div class="crumb"><span class="svc">${s.short} · ${s.name}</span></div>
+    <h2 class="area-title">${a.name}</h2>
+    <div class="controls" id="controls">
+      <div class="xtra"><div class="xhead"><strong>Sesión extra</strong><span>siempre suma +1 al saldo</span></div><p class="xq">¿Cómo la vas a dar?</p>
+        <div class="modes" role="group" aria-label="Cómo dar la sesión extra">
+          <button data-k="mode" data-v="extra" aria-pressed="${state.mode==="extra"}"><strong>Otro día</strong><span>Eliges una sesión de la biblioteca</span></button>
+          <button data-k="mode" data-v="alarga" aria-pressed="${state.mode==="alarga"}"><strong>Alargando la de hoy</strong><span>La sesión de esta semana en versión extendida</span></button>
+        </div></div>
+      <div class="row"><span class="label">Nivel</span>${seg("nivel",[["alto","Nivel alto"],["bajo","Nivel bajo"]],state.nivel)}</div>
+      ${state.mode==="extra"?`<div class="row pickrow"><span class="label">Sesión</span>${seg("n",[1,2].map(i=>{const x=SESSIONS[`${a.id}-${i}`];return [i,`Sesión ${i}`+(x?` · ${esc(x.title)}`:"")];}),state.n)}</div>`:""}
+    </div>
+    <div class="panel">${body}</div>
+    <nav class="endnav" aria-label="Salir"><button class="btn" id="endPick">↑ Elegir otra sesión de ${a.name}</button><button class="btn ghost" id="endHome">⌂ Volver a todas las áreas</button></nav>`;
+  const home=()=>{state.view="home";render();window.scrollTo(0,0);};
+  document.getElementById("back").onclick=home;
+  document.getElementById("endHome").onclick=home;
+  document.getElementById("toTop").onclick=()=>window.scrollTo({top:0,behavior:"smooth"});
+  document.getElementById("endPick").onclick=()=>document.getElementById("controls").scrollIntoView({behavior:"smooth",block:"start"});
+  app.querySelectorAll(".seg button, .modes button").forEach(b=>b.onclick=()=>{const k=b.dataset.k;state[k]=k==="n"?+b.dataset.v:b.dataset.v;render();});
+  const go = document.getElementById("goExtra"); if(go) go.onclick=()=>{state.mode="extra";state.nivel="bajo";state.n=1;render();};
+  const sa = document.getElementById("seeAlto"); if(sa) sa.onclick=()=>{state.nivel="alto";render();};
+  const so = document.getElementById("seeOther"); if(so) so.onclick=()=>{state.n=3-state.n;render();};
+}
+
+if (window.marked) marked.setOptions({breaks:true, gfm:true});
+function md(t){ return marked.parse(t).replace(/<table>/g,'<div class="tw"><table>').replace(/<\/table>/g,'</table></div>').replace(/<a href="(https?:)/g,'<a target="_blank" rel="noopener" href="$1'); }
+/* Recursos internos ya publicados: ruta del MD → enlace */
+const INTERNAL = {
+  "99_PRODUCCIONES/dados-de-historias/Dados-de-Historias-Pegasus.html": "https://claude.ai/artifact/VAkSB5QNZN8cW8c7JbjAaq"
+};
+function resources(ses){
+  const out=[], seen=new Set();
+  const lv={alto:"nivel alto",bajo:"nivel bajo",ficha:""};
+  for(const f of ["ficha","alto","bajo"]){
+    const t=ses[f]; if(!t || (f==="bajo" && ses.comun)) continue;
+    for(const m of t.matchAll(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g)){ if(seen.has(m[2])) continue; seen.add(m[2]); out.push({name:m[1],url:m[2],where:lv[f]}); }
+    if(f==="ficha"){ const r=t.match(/\*\*Recurso digital\*\*\s*\|\s*([^|`]+?)\s*:?\s*`([^`]+)`/); if(r) out.push({name:r[1].trim(),path:r[2],url:INTERNAL[r[2]]?INTERNAL[r[2]]+"#volver-"+curHash():undefined,internal:!!INTERNAL[r[2]],where:""}); }
+  }
+  if(!out.length) return "";
+  return `<div class="res"><h3>Recursos de esta sesión</h3><ul>${out.map(r=> r.url
+    ? `<li><a class="reslink" href="${esc(r.url)}" target="_blank" rel="noopener"><span>${esc(r.name)}</span><small>${r.where?`Se usa en ${r.where} · `:""}${r.internal?"Trae botón para volver a esta sesión":"Se abre en otra pestaña: ciérrala para volver aquí"} ↗</small></a></li>`
+    : `<li><div class="reslink off"><span>${esc(r.name)}</span><small>Archivo interno de Pegasus: <code>${esc(r.path)}</code>. Pídelo a coordinación de metodología.</small></div></li>`).join("")}</ul></div>`;
+}
+function renderSession(a,s){
+  const ses = SESSIONS[`${a.id}-${state.n}`];
+  const head = `<div class="session-head"><span class="pill acc">Otro día · Sesión ${state.n}</span><span class="pill">Nivel ${state.nivel}</span><span class="pill">${s.slot} min</span>${ses&&ses.comun?'<span class="pill">Común a los dos niveles</span>':""}</div>`;
+  if(!ses) return `<div class="card">${head}<div class="empty"><div class="ico" aria-hidden="true"></div><h3>Sesión pendiente de cargar</h3><p>La sesión ${state.n} de ${a.name} todavía no está en la biblioteca.</p></div></div>`;
+  const content = ses[state.nivel];
+  const ficha = `<details class="ficha"><summary>Ficha de la sesión</summary><div class="md">${md(ses.ficha)}${ses.areaNote?md(ses.areaNote):""}</div></details>`;
+  if(!content) return `<article class="card">${head}<div class="md"><h1>${esc(ses.title)}</h1></div>
+    <div class="alert soft"><h3>Esta sesión todavía no tiene versión de nivel bajo</h3><p>El original solo está diseñado para nivel alto. Mientras se adapta, puedes partir del nivel alto y simplificarlo para tu peque, o elegir la otra sesión si tiene nivel bajo.</p><div class="row"><button class="btn" id="seeAlto">Ver nivel alto</button>${SESSIONS[`${a.id}-${3-state.n}`]&&SESSIONS[`${a.id}-${3-state.n}`].bajo?`<button class="btn ghost" id="seeOther">Ver Sesión ${3-state.n} · nivel bajo</button>`:""}</div></div>${resources(ses)}${ficha}</article>`;
+  return `<article class="card">${head}<div class="md"><h1>${esc(ses.title)}</h1></div>${resources(ses)}${ficha}<div class="md">${md(content)}</div></article>`;
+}
+
+function renderAlarga(a,s){
+  const familia = `<div class="quote"><small>Antes de empezar, díselo así a la familia</small>«Hoy te doy una sesión extra alargando esta. Suma +1 a tu saldo de sesiones, exactamente igual que si vinieras otro día.»</div>`;
+  if(a.svc==="tpt" && state.nivel==="bajo"){
+    return `<div class="alert warn" role="alert">
+      <h3>En nivel bajo no se puede dar alargando</h3>
+      <p>Los 40 minutos de sesión ya son el tiempo útil de estos peques: están pensados según su umbral de atención. Alargar no suma valor real.</p>
+      <p><strong>Da la sesión extra otro día o en otro slot.</strong></p>
+      <button class="btn" id="goExtra">Ver sesiones para otro día · nivel bajo</button>
+    </div>`;
+  }
+  const isIS = a.svc==="is";
+  const actividad = isIS
+    ? `<h4>Si sobra tiempo, añade una actividad extra</h4><p>Diseña una actividad más, en la línea de la sesión, y métela en la parte principal como un bloque más.</p>`
+    : `<h4>Si sobra tiempo, añade una actividad extra técnica</h4><p>Diséñala tú y métela en la parte principal. Tiene que estar relacionada directamente con los objetivos del PIA del peque: eres quien mejor los conoce.</p>`;
+  return `<div class="alert info"><h3>Sesión extra alargando: la sesión de esta semana en versión extendida</h3>
+      <p>No hay sesión nueva que preparar. Haces la misma sesión de la semana, con el doble de tiempo.</p></div>
+    <ol class="steps">
+      <li><div><h4>Haz la sesión de esta semana</h4><p>La misma que tenías preparada, con la misma estructura de siempre.</p></div></li>
+      <li><div><h4>Ve mucho más tranquilo en cada actividad</h4><p>Pasa por cada actividad de forma dilatada: más rondas, más variaciones, más tiempo para que el peque disfrute y profundice. Sin prisas con el reloj.</p></div></li>
+      <li><div>${actividad}</div></li>
+    </ol>
+    <div class="limit">Duración total: ${s.slot} + ${s.slot} = ${s.slot*2} min${isIS?"":" (máximo permitido: 80 min seguidos)"}</div>
+    ${familia}`;
+}
+
+function render(){ (state.view==="home"?renderHome:renderArea)(); setHash(); }
+readHash(); render();
+window.addEventListener("hashchange",()=>{readHash();render();});
+</script>
+</body>
+</html>
